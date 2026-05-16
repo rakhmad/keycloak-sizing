@@ -19,12 +19,22 @@
 .pf-v6-c-masthead{background:#151515!important;border-bottom:3px solid var(--rh)!important;min-height:56px;display:flex;align-items:stretch;}
 .pf-v6-c-masthead__main{display:flex;align-items:center;padding:0 16px 0 24px;border-right:1px solid #3c3f42;flex-shrink:0;}
 .pf-v6-c-masthead__content{display:flex;align-items:center;flex:1;padding:0 24px;gap:16px;}
+/* ── Masthead: explicit dark overrides, beats any PF light-theme rule ── */
+#mh .pf-v6-c-toggle-group__button{background:transparent!important;color:#b0b0b0!important;border:1px solid #4a4d52!important;border-radius:4px;}
+#mh .pf-v6-c-toggle-group__button.pf-m-selected{background:rgba(255,255,255,.13)!important;color:#fff!important;border-color:#8a8d90!important;font-weight:600;}
+#mh .pf-v6-c-toggle-group__button:hover:not(.pf-m-selected){background:rgba(255,255,255,.07)!important;color:#e0e0e0!important;border-color:#6a6e73!important;}
+#mh .pf-v6-c-toggle-group__item+.pf-v6-c-toggle-group__item{margin-left:-1px;}
+#mh .pf-v6-c-label{background:transparent!important;border-color:#6a6e73!important;}
+#mh .pf-v6-c-label__text{color:#b0b0b0!important;}
+#mh .pf-v6-c-button{color:#b0b0b0!important;}
+#mh .pf-v6-c-button:hover{color:#fff!important;background:rgba(255,255,255,.06)!important;}
+#mh .pf-v6-c-button.pf-m-link{color:#73bcf7!important;}
+#mh .pf-v6-c-button.pf-m-link:hover{color:#a3d3ff!important;}
 .rh-badge{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--rh);border-radius:4px;font-family:'Red Hat Display',sans-serif;font-weight:900;font-size:13px;color:#fff;letter-spacing:-1px;flex-shrink:0;}
 .btext strong{font-family:'Red Hat Display',sans-serif;font-size:14px;font-weight:700;color:#f0f0f0;display:block;line-height:1.2;}
 .btext small{font-size:10px;color:#6a6e73;text-transform:uppercase;letter-spacing:.5px;}
 .mhc{display:flex;align-items:center;flex:1;}.mhr{display:flex;align-items:center;gap:8px;margin-left:auto;}
-.pf-v6-c-masthead .pf-v6-c-button.pf-m-plain,.pf-v6-c-masthead .pf-v6-c-button.pf-m-link{color:#c9c9c9!important;}
-.pf-v6-c-masthead .pf-v6-c-button.pf-m-plain:hover,.pf-v6-c-masthead .pf-v6-c-button.pf-m-link:hover{color:#fff!important;}
+
 /* Panels */
 .mp{display:none;}.mp.on{display:block;}
 /* Hero inputs */
@@ -138,7 +148,7 @@ code{font-family:'Red Hat Mono',monospace;font-size:11px;background:rgba(128,128
 </head>
 <body>
 <div class="pf-v6-c-page" id="page">
-<header class="pf-v6-c-masthead pf-v6-theme-dark" id="mh">
+<header class="pf-v6-c-masthead" id="mh">
   <div class="pf-v6-c-masthead__main">
     <div style="display:flex;align-items:center;gap:12px">
       <span class="rh-badge">RH</span>
