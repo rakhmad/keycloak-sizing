@@ -497,7 +497,7 @@ body,#page{max-width:100%;overflow-x:hidden;}
       <li class="pf-v6-c-tabs__item pf-m-current" role="presentation" id="ti-k8s"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="true" onclick="ST('k8s')"><span class="pf-v6-c-tabs__item-text">KC K8s</span></button></li>
       <li class="pf-v6-c-tabs__item" role="presentation" id="ti-op"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('op')"><span class="pf-v6-c-tabs__item-text">KC Operator</span></button></li>
       <li class="pf-v6-c-tabs__item" role="presentation" id="ti-ispn"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('ispn')"><span class="pf-v6-c-tabs__item-text">Infinispan CR</span></button></li>
-      <li class="pf-v6-c-tabs__item" role="presentation" id="ti-pg"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('pg')"><span class="pf-v6-c-tabs__item-text">PostgreSQL CNPG</span></button></li>
+      <li class="pf-v6-c-tabs__item" role="presentation" id="ti-pg"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('pg')"><span class="pf-v6-c-tabs__item-text" id="tab-pg-lbl">PostgreSQL</span></button></li>
       <li class="pf-v6-c-tabs__item" role="presentation" id="ti-jvm"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('jvm')"><span class="pf-v6-c-tabs__item-text">JVM Flags</span></button></li>
       <li class="pf-v6-c-tabs__item" role="presentation" id="ti-hpa"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('hpa')"><span class="pf-v6-c-tabs__item-text">HPA Config</span></button></li>
       <li class="pf-v6-c-tabs__item" role="presentation" id="ti-notes"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('notes')"><span class="pf-v6-c-tabs__item-text">Assumptions Log</span></button></li>
@@ -635,15 +635,644 @@ function updSum(w,kc,dg,pg){
 }
 
 function buildYAML(w,kc,dg,pg){
-  const ns='keycloak',p=kc.pods,img='quay.io/keycloak/keycloak:26.5.5',cR=f2(kc.cReq),cL=f2(kc.cLim),mR=fm(kc.eM)+'Mi',mL=fm(kc.mLim)+'Mi';
-  document.getElementById('b-k8s').textContent=`# Red Hat Build of Keycloak v26.x\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: keycloak\n  namespace: ${ns}\nspec:\n  replicas: ${p}\n  selector:\n    matchLabels: {app: keycloak}\n  strategy:\n    type: RollingUpdate\n    rollingUpdate: {maxUnavailable: 1, maxSurge: 1}\n  template:\n    metadata:\n      labels: {app: keycloak}\n    spec:\n      affinity:\n        podAntiAffinity:\n          preferredDuringSchedulingIgnoredDuringExecution:\n            - weight: 100\n              podAffinityTerm:\n                labelSelector:\n                  matchLabels: {app: keycloak}\n                topologyKey: kubernetes.io/hostname\n      containers:\n        - name: keycloak\n          image: ${img}\n          args:\n            - start\n            - --cache=ispn\n            - --cache-stack=kubernetes\n            - --http-pool-max-threads=${kc.thr}\n            - --db-pool-initial-size=${kc.pool}\n            - --db-pool-min-size=${kc.pool}\n            - --db-pool-max-size=${kc.pool}\n          env:\n            - {name: KC_DB, value: postgres}\n            - {name: KC_DB_URL, value: "jdbc:postgresql://<DB_HOST>:5432/keycloak"}\n            - name: KC_DB_USERNAME\n              valueFrom:\n                secretKeyRef: {name: keycloak-db-secret, key: username}\n            - name: KC_DB_PASSWORD\n              valueFrom:\n                secretKeyRef: {name: keycloak-db-secret, key: password}\n            - {name: KC_HOSTNAME, value: "https://<YOUR_HOSTNAME>"}\n            - {name: KC_HTTP_ENABLED, value: "true"}\n            - {name: KC_PROXY_HEADERS, value: xforwarded}\n            - name: JAVA_OPTS_KC_HEAP\n              value: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=50"\n            - name: JAVA_OPTS_APPEND\n              value: >-\n                -XX:+UseG1GC -XX:MaxGCPauseMillis=200\n                -XX:+ParallelRefProcEnabled -XX:+DisableExplicitGC\n                -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20\n                -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m\n                -Djgroups.dns.query=keycloak-headless.${ns}.svc.cluster.local\n          ports:\n            - {name: http, containerPort: 8080}\n            - {name: management, containerPort: 9000}\n            - {name: jgroups, containerPort: 7800}\n          resources:\n            requests: {cpu: "${cR}", memory: "${mR}"}\n            limits:   {cpu: "${cL}", memory: "${mL}"}\n          readinessProbe:\n            httpGet: {path: /health/ready, port: 9000}\n            initialDelaySeconds: 30\n            periodSeconds: 10\n            failureThreshold: 3\n          livenessProbe:\n            httpGet: {path: /health/live, port: 9000}\n            initialDelaySeconds: 60\n            periodSeconds: 30\n          startupProbe:\n            httpGet: {path: /health/started, port: 9000}\n            failureThreshold: 30\n            periodSeconds: 10\n---\napiVersion: v1\nkind: Service\nmetadata: {name: keycloak-headless, namespace: ${ns}}\nspec:\n  clusterIP: None\n  selector: {app: keycloak}\n  ports: [{name: jgroups, port: 7800}]`;
-  document.getElementById('b-op').textContent=`apiVersion: k8s.keycloak.org/v2alpha1\nkind: Keycloak\nmetadata: {name: keycloak, namespace: ${ns}}\nspec:\n  instances: ${p}\n  image: ${img}\n  db:\n    vendor: postgres\n    host: <DB_HOST>\n    database: keycloak\n    usernameSecret: {name: keycloak-db-secret, key: username}\n    passwordSecret: {name: keycloak-db-secret, key: password}\n    poolInitialSize: ${kc.pool}\n    poolMinSize:     ${kc.pool}\n    poolMaxSize:     ${kc.pool}\n  hostname:\n    hostname: <YOUR_HOSTNAME>\n  http:\n    httpEnabled: true\n  resources:\n    requests: {cpu: "${cR}", memory: "${mR}"}\n    limits:   {cpu: "${cL}", memory: "${mL}"}\n  additionalOptions:\n    - {name: cache, value: ispn}\n    - {name: cache-stack, value: kubernetes}\n    - {name: http-pool-max-threads, value: "${kc.thr}"}`;
+  const ns='keycloak',p=kc.pods;
+  const cR=f2(kc.cReq),cL=f2(kc.cLim),mR=fm(kc.eM)+'Mi',mL=fm(kc.mLim)+'Mi';
+  const isOCP=w.platform==='openshift'||w.platform==='rhbk';
+  const img=isOCP?'registry.redhat.io/rhbk/keycloak-rhel9:26':'quay.io/keycloak/keycloak:26.5.5';
+  const sc={openshift:'gp3-csi',rhbk:'gp3-csi',eks:'gp3',aks:'managed-premium',gke:'premium-rwo',k8s:'standard'}[w.platform]||'standard';
+  const host=isOCP?'keycloak.apps.<CLUSTER_DOMAIN>':'keycloak.<YOUR_DOMAIN>';
+  const pullSec=isOCP?'\n      imagePullSecrets:\n        - name: redhat-pull-secret':'';
+
+  // ── Ingress or Route ────────────────────────────────────────────────────
+  let expYAML;
+  if(isOCP){
+    expYAML=`---
+# OpenShift Route — TLS reencrypt
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: keycloak
+  namespace: ${ns}
+spec:
+  host: ${host}
+  to: {kind: Service, name: keycloak, weight: 100}
+  port: {targetPort: http}
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None`;
+  } else {
+    const icls={k8s:'nginx',eks:'alb',aks:'azure/application-gateway',gke:'gce'}[w.platform]||'nginx';
+    const anno={
+      k8s:'    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"\n    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"\n    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"\n    cert-manager.io/cluster-issuer: letsencrypt-prod',
+      eks:'    kubernetes.io/ingress.class: alb\n    alb.ingress.kubernetes.io/scheme: internet-facing\n    alb.ingress.kubernetes.io/target-type: ip\n    alb.ingress.kubernetes.io/listen-ports: \'[{"HTTPS":443}]\'\n    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:<REGION>:<ACCOUNT>:certificate/<CERT_ID>',
+      aks:'    kubernetes.io/ingress.class: azure/application-gateway\n    appgw.ingress.kubernetes.io/ssl-redirect: "true"',
+      gke:'    kubernetes.io/ingress.class: gce\n    networking.gke.io/managed-certificates: keycloak-cert'
+    }[w.platform]||'    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"';
+    expYAML=`---
+# Ingress — ${plat[w.platform]||w.platform}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak
+  namespace: ${ns}
+  annotations:
+${anno}
+spec:
+  ingressClassName: ${icls}
+  tls:
+    - hosts: [${host}]
+      secretName: keycloak-tls
+  rules:
+    - host: ${host}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keycloak
+                port: {number: 8080}`;
+  }
+
+  // ── ServiceMonitor ──────────────────────────────────────────────────────
+  const monLbl=isOCP?'openshift.io/user-monitoring: "true"':'release: prometheus  # match your Prometheus stack release';
+  const smYAML=`---
+# ServiceMonitor — ${isOCP?'OpenShift user-workload monitoring':'Prometheus Operator'}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: keycloak
+  namespace: ${ns}
+  labels:
+    ${monLbl}
+spec:
+  selector:
+    matchLabels: {app: keycloak}
+  endpoints:
+    - port: management
+      path: /metrics
+      interval: 30s
+      scheme: http`;
+
+  // ── KC K8s Deployment + Service + Exposure + ServiceMonitor ────────────
+  document.getElementById('b-k8s').textContent=`# Red Hat Build of Keycloak v26.x — ${plat[w.platform]||w.platform}
+# Image: ${img}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: ${ns}
+spec:
+  replicas: ${p}
+  selector:
+    matchLabels: {app: keycloak}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxUnavailable: 1, maxSurge: 1}
+  template:
+    metadata:
+      labels: {app: keycloak}
+    spec:${pullSec}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels: {app: keycloak}
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: keycloak
+          image: ${img}
+          args:
+            - start
+            - --cache=ispn
+            - --cache-stack=kubernetes
+            - --http-pool-max-threads=${kc.thr}
+            - --db-pool-initial-size=${kc.pool}
+            - --db-pool-min-size=${kc.pool}
+            - --db-pool-max-size=${kc.pool}
+          env:
+            - {name: KC_DB, value: postgres}
+            - {name: KC_DB_URL, value: "jdbc:postgresql://<DB_HOST>:5432/keycloak"}
+            - name: KC_DB_USERNAME
+              valueFrom:
+                secretKeyRef: {name: keycloak-db-secret, key: username}
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: keycloak-db-secret, key: password}
+            - {name: KC_HOSTNAME, value: "https://${host}"}
+            - {name: KC_HTTP_ENABLED, value: "true"}
+            - {name: KC_PROXY_HEADERS, value: xforwarded}
+            - name: JAVA_OPTS_KC_HEAP
+              value: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=50"
+            - name: JAVA_OPTS_APPEND
+              value: >-
+                -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+                -XX:+ParallelRefProcEnabled -XX:+DisableExplicitGC
+                -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20
+                -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m
+                -Djgroups.dns.query=keycloak-headless.${ns}.svc.cluster.local
+          ports:
+            - {name: http, containerPort: 8080}
+            - {name: management, containerPort: 9000}
+            - {name: jgroups, containerPort: 7800}
+          resources:
+            requests: {cpu: "${cR}", memory: "${mR}"}
+            limits:   {cpu: "${cL}", memory: "${mL}"}
+          readinessProbe:
+            httpGet: {path: /health/ready, port: 9000}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: {path: /health/live, port: 9000}
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          startupProbe:
+            httpGet: {path: /health/started, port: 9000}
+            failureThreshold: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: {name: keycloak-headless, namespace: ${ns}}
+spec:
+  clusterIP: None
+  selector: {app: keycloak}
+  ports: [{name: jgroups, port: 7800}]
+${expYAML}
+${smYAML}`;
+
+  // ── KC Operator CR ──────────────────────────────────────────────────────
+  const ocpOpts=isOCP?'\n  # OpenShift: Route auto-created by operator\n  imagePullSecrets:\n    - name: redhat-pull-secret':'';
+  document.getElementById('b-op').textContent=`# Keycloak Operator CR — ${plat[w.platform]||w.platform}
+# Image: ${img}
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata: {name: keycloak, namespace: ${ns}}
+spec:
+  instances: ${p}
+  image: ${img}
+  db:
+    vendor: postgres
+    host: <DB_HOST>
+    database: keycloak
+    usernameSecret: {name: keycloak-db-secret, key: username}
+    passwordSecret: {name: keycloak-db-secret, key: password}
+    poolInitialSize: ${kc.pool}
+    poolMinSize:     ${kc.pool}
+    poolMaxSize:     ${kc.pool}
+  hostname:
+    hostname: ${host}
+  http:
+    httpEnabled: true
+  resources:
+    requests: {cpu: "${cR}", memory: "${mR}"}
+    limits:   {cpu: "${cL}", memory: "${mL}"}
+  additionalOptions:
+    - {name: cache, value: ispn}
+    - {name: cache-stack, value: kubernetes}
+    - {name: http-pool-max-threads, value: "${kc.thr}"}${ocpOpts}`;
+
+  // ── Infinispan CR (platform-independent) ───────────────────────────────
   const dc=f2(dg.cReq),dl=f2(dg.cLim),dm=fm(dg.mReq)+'Mi',dml=fm(dg.mLim)+'Mi';
-  document.getElementById('b-ispn').textContent=`# External Infinispan — only for multi-cluster active/active\napiVersion: infinispan.org/v1\nkind: Infinispan\nmetadata: {name: infinispan, namespace: ${ns}}\nspec:\n  replicas: ${dg.pods}\n  container:\n    cpu: "${dc}:${dl}"\n    memory: "${dm}:${dml}"\n    extraJvmOpts: >-\n      -XX:+UseG1GC -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=40\n      -XX:MaxGCPauseMillis=300 -XX:+DisableExplicitGC\n  security:\n    endpointSecretName: infinispan-credentials\n    endpointEncryption:\n      type: Service\n      certServiceName: service.beta.openshift.io\n  service:\n    type: DataGrid\n    sites:\n      local: {name: site-a, expose: {type: ClusterIP}}\n      locations:\n        - {name: site-b, url: "openshift://api.<SITE_B>:6443", secretName: site-b-secret}\n---\napiVersion: v1\nkind: Secret\nmetadata: {name: infinispan-credentials, namespace: ${ns}}\nstringData:\n  identities.yaml: |\n    credentials:\n      - username: developer\n        password: <CHANGE_ME>\n---\napiVersion: infinispan.org/v2alpha1\nkind: Cache\nmetadata: {name: authenticationSessions, namespace: ${ns}}\nspec:\n  clusterName: infinispan\n  name: authenticationSessions\n  template: |\n    <distributed-cache name="authenticationSessions" owners="2" statistics="false">\n      <encoding media-type="application/x-protostream"/>\n      <memory max-count="10000"/>\n      <backups>\n        <backup site="site-b" strategy="SYNC" failure-policy="FAIL">\n          <take-offline min-wait="120000"/>\n        </backup>\n      </backups>\n    </distributed-cache>`;
-  document.getElementById('b-pg').textContent=`# CloudNativePG — ${pg.vc} vCPU · ${pg.rm} GiB RAM · ${pg.stor} GiB (${pg.inst})\napiVersion: postgresql.cnpg.io/v1\nkind: Cluster\nmetadata: {name: keycloak-db, namespace: keycloak-db}\nspec:\n  instances: 3\n  imageName: ghcr.io/cloudnative-pg/postgresql:16.4\n  storage:\n    storageClass: fast-ssd\n    size: ${pg.stor}Gi\n  resources:\n    requests: {cpu: "${Math.max(1,Math.floor(pg.vc*0.5))}", memory: "${Math.round(pg.rm*0.75)}Gi"}\n    limits:   {cpu: "${pg.vc}", memory: "${pg.rm}Gi"}\n  primaryUpdateStrategy: unsupervised\n  minSyncReplicas: 1\n  maxSyncReplicas: 1\n  affinity:\n    podAntiAffinityType: required\n    topologyKey: topology.kubernetes.io/zone\n  postgresql:\n    parameters:\n      max_connections:          "${pg.mxC}"\n      shared_buffers:           "${pg.sb}MB"\n      effective_cache_size:     "${pg.ec}MB"\n      work_mem:                 "${pg.wm}MB"\n      maintenance_work_mem:     "${pg.mwm}MB"\n      wal_buffers:              "16MB"\n      min_wal_size:             "1GB"\n      max_wal_size:             "4GB"\n      checkpoint_completion_target: "0.9"\n      effective_io_concurrency: "200"\n      random_page_cost:         "1.1"\n      tcp_keepalives_idle:      "60"\n  bootstrap:\n    initdb:\n      database: keycloak\n      owner: keycloak\n      secret: {name: keycloak-db-credentials}\n      encoding: UTF8\n      localeCType: C\n  backup:\n    retentionPolicy: "30d"\n    barmanObjectStore:\n      destinationPath: "s3://<BUCKET>/keycloak-db"\n      s3Credentials:\n        accessKeyId:    {name: backup-s3, key: ACCESS_KEY_ID}\n        secretAccessKey:{name: backup-s3, key: ACCESS_KEY_SECRET}\n      wal: {compression: gzip}\n  monitoring:\n    enablePodMonitor: true\n---\napiVersion: v1\nkind: Secret\nmetadata: {name: keycloak-db-credentials, namespace: keycloak-db}\nstringData: {username: keycloak, password: <CHANGE_ME>}`;
-  document.getElementById('b-jvm').textContent=`# KC: ${fm(kc.mLim)} MiB limit · heap ${fm(kc.heap)} MiB · pool ${kc.pool}/pod · ${kc.thr} HTTP threads\n\nJAVA_OPTS_KC_HEAP="-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=50"\n# Or fixed: JAVA_OPTS_KC_HEAP="-Xms${fm(kc.heap*0.7)}m -Xmx${fm(kc.heap)}m"\n\nJAVA_OPTS_APPEND="\\\n  -XX:+UseG1GC -XX:MaxGCPauseMillis=200 \\\n  -XX:+ParallelRefProcEnabled -XX:+DisableExplicitGC \\\n  -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20 \\\n  -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m \\\n  -XX:+UseContainerSupport"\n\n# resources: {cpu: "${cR}", memory: "${fm(kc.eM)}Mi"} / limits: {cpu: "${cL}", memory: "${mL}"}\n\n# Data Grid JVM: ${fm(dg.mLim)} MiB limit · heap ${fm(dg.heap)} MiB (60%)\nDG_JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=40 \\\n  -XX:MaxGCPauseMillis=300 -XX:+DisableExplicitGC"`;
+  document.getElementById('b-ispn').textContent=`# External Infinispan — only for multi-cluster active/active
+apiVersion: infinispan.org/v1
+kind: Infinispan
+metadata: {name: infinispan, namespace: ${ns}}
+spec:
+  replicas: ${dg.pods}
+  container:
+    cpu: "${dc}:${dl}"
+    memory: "${dm}:${dml}"
+    extraJvmOpts: >-
+      -XX:+UseG1GC -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=40
+      -XX:MaxGCPauseMillis=300 -XX:+DisableExplicitGC
+  security:
+    endpointSecretName: infinispan-credentials
+    endpointEncryption:
+      type: Service
+      certServiceName: service.beta.openshift.io
+  service:
+    type: DataGrid
+    sites:
+      local: {name: site-a, expose: {type: ClusterIP}}
+      locations:
+        - {name: site-b, url: "openshift://api.<SITE_B>:6443", secretName: site-b-secret}
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: infinispan-credentials, namespace: ${ns}}
+stringData:
+  identities.yaml: |
+    credentials:
+      - username: developer
+        password: <CHANGE_ME>
+---
+apiVersion: infinispan.org/v2alpha1
+kind: Cache
+metadata: {name: authenticationSessions, namespace: ${ns}}
+spec:
+  clusterName: infinispan
+  name: authenticationSessions
+  template: |
+    <distributed-cache name="authenticationSessions" owners="2" statistics="false">
+      <encoding media-type="application/x-protostream"/>
+      <memory max-count="10000"/>
+      <backups>
+        <backup site="site-b" strategy="SYNC" failure-policy="FAIL">
+          <take-offline min-wait="120000"/>
+        </backup>
+      </backups>
+    </distributed-cache>`;
+
+  // ── PostgreSQL — operator-specific ─────────────────────────────────────
+  el('tab-pg-lbl',{cnpg:'CloudNativePG',crunchydata:'Crunchy PGO',aurora:'Aurora PG',patroni:'Patroni'}[w.pg]||'PostgreSQL');
+  document.getElementById('b-pg').textContent=buildPgYAML(w,kc,pg,sc);
+
+  // ── JVM Flags ───────────────────────────────────────────────────────────
+  document.getElementById('b-jvm').textContent=`# KC: ${fm(kc.mLim)} MiB limit · heap ${fm(kc.heap)} MiB · pool ${kc.pool}/pod · ${kc.thr} HTTP threads
+# Platform: ${plat[w.platform]||w.platform} · Image: ${img}
+
+JAVA_OPTS_KC_HEAP="-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=50"
+# Or fixed: JAVA_OPTS_KC_HEAP="-Xms${fm(kc.heap*0.7)}m -Xmx${fm(kc.heap)}m"
+
+JAVA_OPTS_APPEND="\\
+  -XX:+UseG1GC -XX:MaxGCPauseMillis=200 \\
+  -XX:+ParallelRefProcEnabled -XX:+DisableExplicitGC \\
+  -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20 \\
+  -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m \\
+  -XX:+UseContainerSupport"
+
+# resources: {cpu: "${cR}", memory: "${fm(kc.eM)}Mi"} / limits: {cpu: "${cL}", memory: "${mL}"}
+
+# Data Grid JVM: ${fm(dg.mLim)} MiB limit · heap ${fm(dg.heap)} MiB (60%)
+DG_JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=40 \\
+  -XX:MaxGCPauseMillis=300 -XX:+DisableExplicitGC"`;
+
+  // ── HPA + PDB ───────────────────────────────────────────────────────────
   const maxR=Math.max(p*2,p+3);
-  document.getElementById('b-hpa').textContent=`apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata: {name: keycloak-hpa, namespace: ${ns}}\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: keycloak\n  minReplicas: ${p}\n  maxReplicas: ${maxR}\n  metrics:\n    - type: Resource\n      resource:\n        name: cpu\n        target: {type: Utilization, averageUtilization: 60}\n    - type: Resource\n      resource:\n        name: memory\n        target: {type: AverageValue, averageValue: "${fm(kc.eM*0.85)}Mi"}\n  behavior:\n    scaleUp:   {stabilizationWindowSeconds: 30,  policies: [{type: Pods, value: 1, periodSeconds: 60}]}\n    scaleDown: {stabilizationWindowSeconds: 300, policies: [{type: Pods, value: 1, periodSeconds: 120}]}\n---\napiVersion: policy/v1\nkind: PodDisruptionBudget\nmetadata: {name: keycloak-pdb, namespace: ${ns}}\nspec:\n  minAvailable: ${Math.max(1,p-1)}\n  selector:\n    matchLabels: {app: keycloak}`;
+  document.getElementById('b-hpa').textContent=`apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: keycloak-hpa, namespace: ${ns}}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: keycloak
+  minReplicas: ${p}
+  maxReplicas: ${maxR}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: 60}
+    - type: Resource
+      resource:
+        name: memory
+        target: {type: AverageValue, averageValue: "${fm(kc.eM*0.85)}Mi"}
+  behavior:
+    scaleUp:   {stabilizationWindowSeconds: 30,  policies: [{type: Pods, value: 1, periodSeconds: 60}]}
+    scaleDown: {stabilizationWindowSeconds: 300, policies: [{type: Pods, value: 1, periodSeconds: 120}]}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: {name: keycloak-pdb, namespace: ${ns}}
+spec:
+  minAvailable: ${Math.max(1,p-1)}
+  selector:
+    matchLabels: {app: keycloak}`;
+}
+
+// ── PostgreSQL YAML dispatcher ────────────────────────────────────────────
+function buildPgYAML(w,kc,pg,sc){
+  switch(w.pg){
+    case 'crunchydata': return pgCrunchy(w,kc,pg,sc);
+    case 'aurora':      return pgAurora(w,kc,pg);
+    case 'patroni':     return pgPatroni(w,kc,pg,sc);
+    default:            return pgCNPG(w,kc,pg,sc);
+  }
+}
+
+function pgCNPG(w,kc,pg,sc){
+  return `# CloudNativePG — ${pg.vc} vCPU · ${pg.rm} GiB RAM · ${pg.stor} GiB (${pg.inst})
+# Platform: ${plat[w.platform]||w.platform} · Storage class: ${sc}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata: {name: keycloak-db, namespace: keycloak-db}
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+  storage:
+    storageClass: ${sc}
+    size: ${pg.stor}Gi
+  resources:
+    requests: {cpu: "${Math.max(1,Math.floor(pg.vc*0.5))}", memory: "${Math.round(pg.rm*0.75)}Gi"}
+    limits:   {cpu: "${pg.vc}", memory: "${pg.rm}Gi"}
+  primaryUpdateStrategy: unsupervised
+  minSyncReplicas: 1
+  maxSyncReplicas: 1
+  affinity:
+    podAntiAffinityType: required
+    topologyKey: topology.kubernetes.io/zone
+  postgresql:
+    parameters:
+      max_connections:          "${pg.mxC}"
+      shared_buffers:           "${pg.sb}MB"
+      effective_cache_size:     "${pg.ec}MB"
+      work_mem:                 "${pg.wm}MB"
+      maintenance_work_mem:     "${pg.mwm}MB"
+      wal_buffers:              "16MB"
+      min_wal_size:             "1GB"
+      max_wal_size:             "4GB"
+      checkpoint_completion_target: "0.9"
+      effective_io_concurrency: "200"
+      random_page_cost:         "1.1"
+      tcp_keepalives_idle:      "60"
+  bootstrap:
+    initdb:
+      database: keycloak
+      owner: keycloak
+      secret: {name: keycloak-db-credentials}
+      encoding: UTF8
+      localeCType: C
+  backup:
+    retentionPolicy: "30d"
+    barmanObjectStore:
+      destinationPath: "s3://<BUCKET>/keycloak-db"
+      s3Credentials:
+        accessKeyId:    {name: backup-s3, key: ACCESS_KEY_ID}
+        secretAccessKey:{name: backup-s3, key: ACCESS_KEY_SECRET}
+      wal: {compression: gzip}
+  monitoring:
+    enablePodMonitor: true
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: keycloak-db-credentials, namespace: keycloak-db}
+stringData: {username: keycloak, password: <CHANGE_ME>}
+---
+# Cross-namespace secret copy (keycloak-db → keycloak namespace)
+# Use External Secrets Operator or copy manually:
+# kubectl get secret keycloak-db-credentials -n keycloak-db -o json | \\
+#   jq '.metadata.namespace = "keycloak"' | kubectl apply -f -`;
+}
+
+function pgCrunchy(w,kc,pg,sc){
+  return `# Crunchy Data PGO v5 — PostgresCluster
+# Platform: ${plat[w.platform]||w.platform} · Storage class: ${sc}
+# Install PGO: kubectl apply --server-side -k \\
+#   https://github.com/CrunchyData/postgres-operator-examples/kustomize/install/namespace
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: keycloak-db
+  namespace: keycloak-db
+spec:
+  image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres:ubi8-16.4-0
+  postgresVersion: 16
+  instances:
+    - name: pgha
+      replicas: 3
+      resources:
+        requests: {cpu: "${Math.max(1,Math.floor(pg.vc*0.5))}", memory: "${Math.round(pg.rm*0.75)}Gi"}
+        limits:   {cpu: "${pg.vc}", memory: "${pg.rm}Gi"}
+      dataVolumeClaimSpec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: ${sc}
+        resources:
+          requests: {storage: ${pg.stor}Gi}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: topology.kubernetes.io/zone
+                labelSelector:
+                  matchLabels:
+                    postgres-operator.crunchydata.com/cluster: keycloak-db
+  patroni:
+    dynamicConfiguration:
+      postgresql:
+        parameters:
+          max_connections: "${pg.mxC}"
+          shared_buffers: "${pg.sb}MB"
+          effective_cache_size: "${pg.ec}MB"
+          work_mem: "${pg.wm}MB"
+          maintenance_work_mem: "${pg.mwm}MB"
+          wal_buffers: "16MB"
+          checkpoint_completion_target: "0.9"
+          effective_io_concurrency: "200"
+          random_page_cost: "1.1"
+          tcp_keepalives_idle: "60"
+  users:
+    - name: keycloak
+      databases: [keycloak]
+      password: {type: AlphaNumeric}
+  backups:
+    pgbackrest:
+      repos:
+        - name: repo1
+          volume:
+            volumeClaimSpec:
+              accessModes: [ReadWriteOnce]
+              storageClassName: ${sc}
+              resources:
+                requests: {storage: 10Gi}
+  monitoring:
+    pgmonitorEnabled: true
+# ─────────────────────────────────────────────────────────────────
+# PGO creates these secrets automatically in namespace keycloak-db:
+#   keycloak-db-pguser-keycloak  → user, password, dbname, host, port, uri
+#   keycloak-db-replication      → replication credentials
+#   keycloak-db-config           → cluster configuration
+#
+# Keycloak DB URL:
+#   jdbc:postgresql://keycloak-db-primary.keycloak-db.svc:5432/keycloak
+#
+# Reference the PGO secret in Keycloak deployment:
+#   KC_DB_USERNAME: secretKeyRef: keycloak-db-pguser-keycloak → .user
+#   KC_DB_PASSWORD: secretKeyRef: keycloak-db-pguser-keycloak → .password
+# ─────────────────────────────────────────────────────────────────`;
+}
+
+function pgAurora(w,kc,pg){
+  const region='<AWS_REGION>';
+  return `# Amazon Aurora PostgreSQL — Recommended: ${pg.inst} (${pg.vc} vCPU, ${pg.rm} GiB)
+# Aurora is managed by AWS, not a K8s operator.
+# 1. Create Aurora Cluster ────────────────────────────────────────────────
+aws rds create-db-cluster \\
+  --db-cluster-identifier keycloak-db \\
+  --engine aurora-postgresql \\
+  --engine-version 16.4 \\
+  --db-cluster-parameter-group-name keycloak-aurora-pg16 \\
+  --master-username keycloak \\
+  --manage-master-user-password \\
+  --backup-retention-period 7 \\
+  --storage-encrypted \\
+  --vpc-security-group-ids <SG_ID> \\
+  --db-subnet-group-name <SUBNET_GROUP> \\
+  --region ${region}
+
+# 2. Create Writer Instance (${pg.inst})
+aws rds create-db-instance \\
+  --db-cluster-identifier keycloak-db \\
+  --db-instance-identifier keycloak-db-writer \\
+  --db-instance-class ${pg.inst} \\
+  --engine aurora-postgresql
+
+# 3. Create Reader Instance (for HA reads)
+aws rds create-db-instance \\
+  --db-cluster-identifier keycloak-db \\
+  --db-instance-identifier keycloak-db-reader \\
+  --db-instance-class ${pg.inst} \\
+  --engine aurora-postgresql
+
+# 4. Parameter Group (Aurora PG16 cluster params)
+aws rds create-db-cluster-parameter-group \\
+  --db-cluster-parameter-group-name keycloak-aurora-pg16 \\
+  --db-parameter-group-family aurora-postgresql16 \\
+  --description "Keycloak optimized Aurora PG16"
+
+aws rds modify-db-cluster-parameter-group \\
+  --db-cluster-parameter-group-name keycloak-aurora-pg16 \\
+  --parameters \\
+    "ParameterName=max_connections,ParameterValue=${pg.mxC},ApplyMethod=immediate" \\
+    "ParameterName=shared_buffers,ParameterValue=${pg.sb*1024},ApplyMethod=pending-reboot" \\
+    "ParameterName=work_mem,ParameterValue=${pg.wm*1024},ApplyMethod=immediate" \\
+    "ParameterName=effective_cache_size,ParameterValue=${pg.ec*1024},ApplyMethod=immediate" \\
+    "ParameterName=checkpoint_completion_target,ParameterValue=0.9,ApplyMethod=immediate" \\
+    "ParameterName=tcp_keepalives_idle,ParameterValue=60,ApplyMethod=immediate"
+
+# Note: shared_buffers above is in 8kB blocks (${pg.sb} MB = ${pg.sb*128} blocks)
+# Aurora manages memory automatically — shared_buffers is advisory only.
+
+# 5. K8s Secret for Keycloak → Aurora connection ──────────────────────────
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-db-secret
+  namespace: keycloak
+stringData:
+  username: keycloak
+  password: <retrieve-from-aws-secrets-manager>
+# KC_DB_URL:
+#   jdbc:postgresql://<AURORA_WRITER_ENDPOINT>:5432/keycloak
+#   Writer endpoint: keycloak-db.cluster-<ID>.${region}.rds.amazonaws.com
+#   (use writer for all Keycloak connections — Aurora handles internal routing)
+
+# 6. Estimated sizing ─────────────────────────────────────────────────────
+# Instance:    ${pg.inst}
+# vCPU:        ${pg.vc}
+# RAM:         ${pg.rm} GiB
+# Write IOPS:  ~${fi(pg.iops)} (Aurora auto-scales storage IOPS)
+# Storage:     ${pg.stor} GiB starting (Aurora auto-scales)
+# Multi-AZ:    1 writer + 1+ readers in separate AZs
+# Backup:      automated snapshots + PITR to S3`;
+}
+
+function pgPatroni(w,kc,pg,sc){
+  return `# PostgreSQL StatefulSet — vanilla Patroni setup
+# Platform: ${plat[w.platform]||w.platform} · Storage class: ${sc}
+# NOTE: For production HA, strongly prefer CloudNativePG or Crunchy PGO.
+# This StatefulSet provides a single-instance PostgreSQL suitable for dev/staging.
+# For multi-instance HA, use an operator that manages Patroni lifecycle.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: keycloak-db
+  namespace: keycloak-db
+spec:
+  serviceName: keycloak-db-headless
+  replicas: 1
+  selector:
+    matchLabels: {app: keycloak-db}
+  volumeClaimTemplates:
+    - metadata: {name: pgdata}
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: ${sc}
+        resources:
+          requests: {storage: ${pg.stor}Gi}
+  template:
+    metadata:
+      labels: {app: keycloak-db}
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: postgres:16.4-alpine
+          env:
+            - {name: POSTGRES_DB,   value: keycloak}
+            - {name: POSTGRES_USER, value: keycloak}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: keycloak-db-secret, key: password}
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+          args:
+            - postgres
+            - -c
+            - max_connections=${pg.mxC}
+            - -c
+            - shared_buffers=${pg.sb}MB
+            - -c
+            - effective_cache_size=${pg.ec}MB
+            - -c
+            - work_mem=${pg.wm}MB
+            - -c
+            - maintenance_work_mem=${pg.mwm}MB
+            - -c
+            - wal_buffers=16MB
+            - -c
+            - checkpoint_completion_target=0.9
+            - -c
+            - effective_io_concurrency=200
+            - -c
+            - random_page_cost=1.1
+            - -c
+            - tcp_keepalives_idle=60
+          resources:
+            requests: {cpu: "${Math.max(1,Math.floor(pg.vc*0.5))}", memory: "${Math.round(pg.rm*0.75)}Gi"}
+            limits:   {cpu: "${pg.vc}", memory: "${pg.rm}Gi"}
+          ports:
+            - {name: postgresql, containerPort: 5432}
+          volumeMounts:
+            - {name: pgdata, mountPath: /var/lib/postgresql/data}
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, keycloak, -d, keycloak]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: [pg_isready, -U, keycloak, -d, keycloak]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata: {name: keycloak-db, namespace: keycloak-db}
+spec:
+  selector: {app: keycloak-db}
+  ports: [{name: postgresql, port: 5432}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: keycloak-db-headless, namespace: keycloak-db}
+spec:
+  clusterIP: None
+  selector: {app: keycloak-db}
+  ports: [{name: postgresql, port: 5432}]
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: keycloak-db-secret, namespace: keycloak-db}
+stringData: {password: <CHANGE_ME>}
+# KC_DB_URL: jdbc:postgresql://keycloak-db.keycloak-db.svc:5432/keycloak`;
 }
 
 function buildNotes(w,kc,dg,pg){
