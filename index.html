@@ -520,7 +520,7 @@ body,#page{max-width:100%;overflow-x:hidden;}
   <a href="https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.4/" target="_blank">Data Grid docs</a> ·
   <a href="https://cloudnative-pg.io/docs/" target="_blank">CloudNativePG</a> ·
   <a href="https://github.com/rakhmad/keycloak-sizing" target="_blank">rakhmad/keycloak-sizing</a>
-  &nbsp;|&nbsp; Offline-capable · no data sent
+  &nbsp;|&nbsp; Offline-capable · no data sent &nbsp;|&nbsp; 💡 Share via URL for best mobile experience: <strong>rakhmad.github.io/keycloak-sizing</strong>
 </footer>
 </main></div><script>
 'use strict';
@@ -541,23 +541,23 @@ const A={lpct:15,gpct:30,rpct:55,pods:3,mode:'single',platform:'openshift',ispn:
 const D={logins:15,grants:120,refresh:120,users:50000,clients:2500,sessions:10000,pods:3,mode:'single',platform:'openshift',ispn:'embedded',pg:'cnpg',hash:'argon2'};
 
 // ── Wire quick inputs ──
-['users','apps','rps','tps'].forEach(k=>{document.getElementById('q-'+k).addEventListener('input',e=>{Q[k]=+e.target.value||0;upd();});});
+['users','apps','rps','tps'].forEach(k=>{const _e=document.getElementById('q-'+k);if(_e)_e.addEventListener('input',e=>{Q[k]=+e.target.value||0;upd();});});
 
 // ── Wire assumption sliders ──
 function wsl(id,ak,fmt){const e=document.getElementById(id),l=document.getElementById('lbl-'+id.slice(2));if(!e)return;e.addEventListener('input',()=>{A[ak]=+e.value;if(l)l.textContent=fmt?fmt(+e.value):e.value;upd();});}
 wsl('a-lpct','lpct',v=>v+'%');wsl('a-gpct','gpct',v=>v+'%');wsl('a-rpct','rpct',v=>v+'%');
 wsl('a-peak','peak',v=>v+'×');wsl('a-sess','sess',v=>v+'%');wsl('a-ttl','ttl',v=>v+'s');wsl('a-cpuhr','cpuHr',v=>v+'×');
-document.getElementById('a-pods').addEventListener('input',e=>{A.pods=+e.target.value||1;upd();});
+const _ap=document.getElementById('a-pods');if(_ap)_ap.addEventListener('input',e=>{A.pods=+e.target.value||1;upd();});
 ['mode','platform','ispn','pg','hash'].forEach(k=>{const e=document.getElementById('a-'+k);if(!e)return;e.addEventListener('change',e2=>{A[k]=e2.target.value;if(k==='mode'){A.ispn=e2.target.value==='multi'?'external':'embedded';document.getElementById('a-ispn').value=A.ispn;}upd();});});
 
 // ── Wire detailed inputs ──
-function dlnk(r,n,k){const R=document.getElementById(r),N=document.getElementById(n);R.addEventListener('input',()=>{N.value=R.value;D[k]=+R.value;upd();});N.addEventListener('input',()=>{R.value=N.value;D[k]=+N.value||0;upd();});}
+function dlnk(r,n,k){const R=document.getElementById(r),N=document.getElementById(n);if(!R||!N)return;R.addEventListener('input',()=>{N.value=R.value;D[k]=+R.value;upd();});N.addEventListener('input',()=>{R.value=N.value;D[k]=+N.value||0;upd();});}
 dlnk('d-logins-r','d-logins','logins');dlnk('d-grants-r','d-grants','grants');dlnk('d-refresh-r','d-refresh','refresh');dlnk('d-pods-r','d-pods','pods');dlnk('d-users-r','d-users','users');dlnk('d-clients-r','d-clients','clients');dlnk('d-sessions-r','d-sessions','sessions');
 ['platform','ispn','pg','hash'].forEach(k=>{const e=document.getElementById('d-'+k);if(e)e.addEventListener('change',e2=>{D[k]=e2.target.value;upd();});});
 document.querySelectorAll('input[name=d-mode]').forEach(r=>r.addEventListener('change',e=>{
   D.mode=e.target.value;
   document.querySelectorAll('.ropt').forEach(o=>o.classList.remove('sel'));
-  e.target.closest('.ropt').classList.add('sel');
+  const _ropt=e.target.closest('.ropt');if(_ropt)_ropt.classList.add('sel');
   // FIX: sync D.ispn AND the d-ispn select when mode changes
   D.ispn=D.mode==='multi'?'external':'embedded';
   document.getElementById('d-ispn').value=D.ispn;
@@ -1392,7 +1392,24 @@ function resetAll(){
   upd();
 }
 
-upd();
+// ── Robust init for iOS WKWebView / in-app browsers ──────────────────
+// Script is at bottom so DOM is ready, but WKWebView in Telegram/WhatsApp
+// sometimes defers or sandboxes inline scripts. Use both direct call and
+// window.load fallback to cover all cases.
+(function robustInit(){
+  function run(){
+    try{upd();}catch(e){
+      // Retry once after a short delay if first call fails
+      setTimeout(function(){try{upd();}catch(e2){console.error('KC Sizing: upd failed',e2);}},300);
+    }
+  }
+  // Direct call — works when script is at end of body (normal browsers)
+  run();
+  // Fallback — covers WKWebView contexts where inline scripts are deferred
+  if(document.readyState!=='complete'){
+    window.addEventListener('load',run,{once:true});
+  }
+})();
 </script>
 </body>
 </html>
