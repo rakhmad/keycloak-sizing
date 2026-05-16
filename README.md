@@ -2,7 +2,7 @@
 
 **Red Hat Build of Keycloak v26.x** — full-stack infrastructure sizing tool.
 
-🔗 **[Open the tool](https://YOUR_USERNAME.github.io/keycloak-sizing/)**
+🔗 **[Open the tool](https://rakhmad.github.io/keycloak-sizing/)**
 
 ## What it sizes
 
