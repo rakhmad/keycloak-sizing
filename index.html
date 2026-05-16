@@ -1,1734 +1,630 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="pf-v6-theme-dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Keycloak Sizing — Red Hat</title>
+<link rel="stylesheet" href="https://unpkg.com/@patternfly/patternfly@6.4.0/patternfly.min.css" crossorigin="anonymous">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;900&family=Red+Hat+Mono:wght@400;500;600&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ══════════════════════════════════════════════════════════════
-   RED HAT DESIGN TOKENS
-══════════════════════════════════════════════════════════════ */
 :root {
-  /* Brand */
-  --rh-red:        #EE0000;
-  --rh-red-dark:   #C00000;
-  --rh-red-dim:    rgba(238,0,0,.1);
-  /* Neutrals */
-  --rh-black:      #151515;
-  --rh-gray-90:    #1F1F1F;
-  --rh-gray-80:    #292929;
-  --rh-gray-70:    #3C3F42;
-  --rh-gray-60:    #6A6E73;
-  --rh-gray-40:    #B8BBBE;
-  --rh-gray-20:    #D2D3D5;
-  --rh-gray-10:    #F5F5F5;
-  --rh-white:      #FFFFFF;
-  /* Service accents (PatternFly-aligned) */
-  --rh-teal:       #009596;
-  --rh-teal-dim:   rgba(0,149,150,.1);
-  --rh-blue:       #0066CC;
-  --rh-blue-dim:   rgba(0,102,204,.1);
-  --rh-green:      #3E8635;
-  --rh-yellow:     #F0AB00;
-  --rh-yellow-dim: rgba(240,171,0,.1);
-  --rh-purple:     #8476D1;
-  /* App surfaces (dark) */
-  --bg:        #151515;
-  --bg1:       #1F1F1F;
-  --bg2:       #292929;
-  --bg3:       #343434;
-  --border:    #3C3F42;
-  --border-hi: #4F5255;
-  /* Typography */
-  --text:      #F0F0F0;
-  --text2:     #B8BBBE;
-  --text3:     #6A6E73;
-  /* Fonts */
-  --fd: 'Red Hat Display', 'Helvetica Neue', Arial, sans-serif;
-  --ft: 'Red Hat Text',    'Helvetica Neue', Arial, sans-serif;
-  --fm: 'Red Hat Mono',    'Cascadia Code',  'Consolas', monospace;
+  --pf-v6-global--FontFamily--sans-serif:'Red Hat Text',RedHatText,'Helvetica Neue',Helvetica,Arial,sans-serif;
+  --pf-v6-global--FontFamily--heading--sans-serif:'Red Hat Display',RedHatDisplay,'Helvetica Neue',Helvetica,Arial,sans-serif;
+  --pf-v6-global--FontFamily--monospace:'Red Hat Mono',RedHatMono,'Courier New',Courier,monospace;
+  --rh-red:#EE0000; --rh-teal:#009596; --rh-blue:#0066CC;
 }
-
-/* ── Reset & base ── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { font-family: var(--ft); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; min-height: 100vh; }
-a { color: var(--rh-blue); text-decoration: none; }
-a:hover { text-decoration: underline; }
-code { font-family: var(--fm); font-size: 11px; background: rgba(255,255,255,.07); padding: 1px 6px; border-radius: 3px; }
-
-/* ══════════════════════════════════════════════════════════════
-   HEADER
-══════════════════════════════════════════════════════════════ */
-.hdr {
-  background: var(--rh-black);
-  border-bottom: 3px solid var(--rh-red);
-  padding: 0 32px;
-  display: flex;
-  align-items: stretch;
-  height: 56px;
-  position: sticky;
-  top: 0;
-  z-index: 300;
-}
-.hdr-brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-right: 24px;
-  border-right: 1px solid var(--rh-gray-70);
-}
-.rh-hat {
-  width: 32px; height: 32px;
-  background: var(--rh-red);
-  border-radius: 4px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  font-family: var(--fd);
-  font-weight: 900;
-  font-size: 13px;
-  color: white;
-  letter-spacing: -1px;
-}
-.hdr-brand-text { line-height: 1.2; }
-.hdr-brand-text strong { font-family: var(--fd); font-size: 14px; font-weight: 700; color: var(--rh-white); display: block; }
-.hdr-brand-text span { font-size: 10px; color: var(--text3); letter-spacing: .5px; text-transform: uppercase; }
-
-/* Mode toggle */
-.hdr-center { display: flex; align-items: center; gap: 0; margin-left: 28px; }
-.mode-btn {
-  display: flex; align-items: center; gap: 7px;
-  padding: 0 20px; height: 100%;
-  font-family: var(--ft); font-size: 13px; font-weight: 500;
-  color: var(--text3); border: none; background: none;
-  cursor: pointer; border-bottom: 3px solid transparent;
-  margin-bottom: -3px; transition: all .15s;
-}
-.mode-btn svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
-.mode-btn:hover { color: var(--text2); }
-.mode-btn.active { color: var(--rh-red); border-bottom-color: var(--rh-red); }
-
-.hdr-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.hdr-pill { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; border: 1px solid; }
-.pill-rh { background: var(--rh-red-dim); border-color: var(--rh-red); color: var(--rh-red); }
-.hdr-link { font-size: 11px; color: var(--text3); padding: 5px 12px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--ft); cursor: pointer; background: transparent; transition: all .15s; }
-.hdr-link:hover { border-color: var(--text3); color: var(--text2); }
-
-/* ══════════════════════════════════════════════════════════════
-   LAYOUT
-══════════════════════════════════════════════════════════════ */
-.main { max-width: 1360px; margin: 0 auto; padding: 28px 32px 80px; }
-.sec-lbl { font-family: var(--ft); font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 12px; }
-.dvd { height: 1px; background: var(--border); margin: 28px 0; }
-
-/* ══════════════════════════════════════════════════════════════
-   MODE PANELS
-══════════════════════════════════════════════════════════════ */
-.mode-panel { display: none; }
-.mode-panel.on { display: block; }
-
-/* ── QUICK MODE — 4 hero inputs ── */
-.hero-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 10px; }
-.hero-card {
-  background: var(--bg1); border: 1px solid var(--border); border-radius: 8px;
-  padding: 22px 20px 18px; transition: border-color .2s; cursor: text;
-}
-.hero-card:focus-within { border-color: var(--rh-red); background: var(--bg2); }
-.hero-icon { font-size: 22px; display: block; margin-bottom: 10px; }
-.hero-lbl { font-family: var(--fd); font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: block; }
-.hero-inp {
-  width: 100%; background: transparent; border: none; outline: none;
-  color: var(--rh-red); font-family: var(--fm); font-size: 34px; font-weight: 600;
-  letter-spacing: -1px; padding: 0; -moz-appearance: textfield;
-}
-.hero-inp::-webkit-outer-spin-button, .hero-inp::-webkit-inner-spin-button { -webkit-appearance: none; }
-.hero-hint { font-size: 11px; color: var(--text3); display: block; margin-top: 5px; }
-
-/* ── DETAILED MODE — 3 input cards ── */
-.inp-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 10px; }
-
-/* ── Shared card ── */
-.card { background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
-.card-hd { font-family: var(--fd); font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-.card-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.dot-kc { background: var(--rh-red); }
-.dot-dg { background: var(--rh-teal); }
-.dot-pg { background: var(--rh-blue); }
-.field { margin-bottom: 13px; }
-.field:last-child { margin-bottom: 0; }
-.field > label { display: block; font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
-.field-row { display: flex; align-items: center; gap: 9px; }
-.field-hint { font-size: 10px; color: var(--text3); margin-top: 3px; }
-input[type=range] { flex: 1; -webkit-appearance: none; appearance: none; height: 3px; background: var(--border-hi); border-radius: 2px; outline: none; cursor: pointer; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--rh-red); border: 2px solid var(--bg1); cursor: pointer; }
-input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background: var(--rh-red); border: 2px solid var(--bg1); cursor: pointer; }
-.f-num { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--fm); font-size: 12px; padding: 5px 7px; -moz-appearance: textfield; text-align: right; transition: border-color .15s; }
-.f-num::-webkit-outer-spin-button, .f-num::-webkit-inner-spin-button { -webkit-appearance: none; }
-.f-num:focus { outline: none; border-color: var(--rh-red); }
-.f-sel { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--ft); font-size: 12px; padding: 6px 8px; width: 100%; cursor: pointer; transition: border-color .15s; }
-.f-sel:focus { outline: none; border-color: var(--rh-red); }
-.radio-group { display: flex; flex-direction: column; gap: 6px; }
-.radio-opt { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 11px; border: 1px solid var(--border); border-radius: 6px; transition: all .15s; }
-.radio-opt:hover { border-color: var(--border-hi); }
-.radio-opt.sel { border-color: var(--rh-red); background: var(--rh-red-dim); }
-.radio-opt input[type=radio] { width: 12px; height: 12px; accent-color: var(--rh-red); flex-shrink: 0; cursor: pointer; }
-.rl { font-size: 12px; }
-.rs { font-size: 10px; color: var(--text3); margin-top: 1px; }
-
-/* ── Assumptions accordion ── */
-.asm-wrap { background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
-.asm-hdr { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; cursor: pointer; user-select: none; transition: background .15s; }
-.asm-hdr:hover { background: var(--bg2); }
-.asm-hdr-l { display: flex; align-items: center; gap: 9px; }
-.asm-title { font-family: var(--fd); font-size: 13px; font-weight: 600; }
-.asm-sub { font-size: 11px; color: var(--text3); }
-.asm-chev { font-size: 11px; color: var(--text3); transition: transform .2s; }
-.asm-wrap.open .asm-chev { transform: rotate(180deg); }
-.asm-body { display: none; padding: 0 18px 18px; border-top: 1px solid var(--border); }
-.asm-wrap.open .asm-body { display: block; }
-.asm-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px 28px; margin-top: 16px; }
-.asm-group h4 { font-family: var(--fd); font-size: 10px; font-weight: 700; color: var(--rh-red); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
-.asm-field { margin-bottom: 11px; }
-.asm-field:last-child { margin-bottom: 0; }
-.asm-field label { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text2); margin-bottom: 5px; }
-.asm-field label span { font-family: var(--fm); font-size: 11px; color: var(--rh-red); font-weight: 600; }
-.asm-hint { font-size: 10px; color: var(--text3); margin-top: 3px; }
-.pct-bar { height: 4px; border-radius: 2px; background: var(--border); display: flex; gap: 2px; margin-top: 8px; overflow: hidden; }
-.pct-seg { height: 100%; border-radius: 1px; transition: width .2s; }
-.pct-warn { font-size: 10px; color: var(--rh-red); margin-top: 4px; }
-.pct-legend { margin-top: 6px; font-size: 10px; color: var(--text3); }
-
-/* ── Derived strip ── */
-.derived-strip {
-  background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
-  padding: 11px 18px; display: flex; gap: 24px; flex-wrap: wrap;
-  margin-bottom: 18px; align-items: center;
-}
-.ds-item { display: flex; flex-direction: column; }
-.ds-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .7px; }
-.ds-val { font-family: var(--fm); font-size: 13px; font-weight: 600; margin-top: 1px; }
-.ds-val.kc { color: var(--rh-red); }
-.ds-val.dg { color: var(--rh-teal); }
-.ds-val.pg { color: var(--rh-blue); }
-.ds-sep { width: 1px; background: var(--border); align-self: stretch; flex-shrink: 0; }
-
-/* ══════════════════════════════════════════════════════════════
-   NOTICES
-══════════════════════════════════════════════════════════════ */
-.notice { padding: 9px 14px; font-size: 12px; border-radius: 0 6px 6px 0; margin-bottom: 10px; border: 1px solid; }
-.nw { border-color: rgba(240,171,0,.4); border-left: 3px solid var(--rh-yellow); background: var(--rh-yellow-dim); }
-.nw strong { color: var(--rh-yellow); }
-.ne { border-color: rgba(238,0,0,.35); border-left: 3px solid var(--rh-red); background: var(--rh-red-dim); }
-.ne strong { color: var(--rh-red); }
-.ni { border-color: rgba(0,102,204,.35); border-left: 3px solid var(--rh-blue); background: var(--rh-blue-dim); }
-.ni strong { color: var(--rh-blue); }
-.nt { border-color: rgba(0,149,150,.35); border-left: 3px solid var(--rh-teal); background: var(--rh-teal-dim); }
-.nt strong { color: var(--rh-teal); }
-
-/* ══════════════════════════════════════════════════════════════
-   TIER HEADERS & METRIC CARDS
-══════════════════════════════════════════════════════════════ */
-.tier-hdr { display: flex; align-items: center; gap: 10px; margin: 18px 0 10px; }
-.tpill { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; border: 1px solid; font-family: var(--ft); }
-.tp-kc   { background: var(--rh-red-dim);  color: var(--rh-red);  border-color: var(--rh-red); }
-.tp-dg   { background: var(--rh-teal-dim); color: var(--rh-teal); border-color: var(--rh-teal); }
-.tp-pg   { background: var(--rh-blue-dim); color: var(--rh-blue); border-color: var(--rh-blue); }
-.tier-sub { font-size: 11px; color: var(--text3); }
-
-.mc-row { display: grid; gap: 10px; margin-bottom: 10px; }
-.mc-5 { grid-template-columns: repeat(5,1fr); }
-.mc-4 { grid-template-columns: repeat(4,1fr); }
-.mc { background: var(--bg1); border: 1px solid var(--border); border-radius: 6px; padding: 13px 11px; text-align: center; }
-.mc.hi-kc { border-color: var(--rh-red);  background: var(--rh-red-dim); }
-.mc.hi-dg { border-color: var(--rh-teal); background: var(--rh-teal-dim); }
-.mc.hi-pg { border-color: var(--rh-blue); background: var(--rh-blue-dim); }
-.mc-lbl { font-size: 10px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 7px; }
-.mc-val { font-family: var(--fm); font-size: 20px; font-weight: 600; letter-spacing: -.5px; line-height: 1; }
-.mc-val.sm { font-size: 13px; }
-.mc.hi-kc .mc-val { color: var(--rh-red); }
-.mc.hi-dg .mc-val { color: var(--rh-teal); }
-.mc.hi-pg .mc-val { color: var(--rh-blue); }
-.mc-unit { font-size: 10px; color: var(--text3); margin-top: 5px; }
-
-/* ══════════════════════════════════════════════════════════════
-   PRESENTATION SUMMARY
-══════════════════════════════════════════════════════════════ */
-.sum-section { margin-top: 4px; }
-.sum-toolbar {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 14px;
-}
-.sum-toolbar-right { display: flex; gap: 8px; }
-.sum-action {
-  display: flex; align-items: center; gap: 6px;
-  font-family: var(--ft); font-size: 12px; font-weight: 500;
-  padding: 7px 16px; border-radius: 4px; cursor: pointer; transition: all .15s;
-  border: 1px solid;
-}
-.sum-action svg { width: 13px; height: 13px; fill: currentColor; flex-shrink: 0; }
-.sum-action.primary { background: var(--rh-red); border-color: var(--rh-red); color: white; }
-.sum-action.primary:hover { background: var(--rh-red-dark); border-color: var(--rh-red-dark); }
-.sum-action.secondary { background: transparent; border-color: var(--border); color: var(--text2); }
-.sum-action.secondary:hover { border-color: var(--text3); color: var(--text); }
-
-/* The printable card — light background, Red Hat styled */
-.sum-card {
-  background: var(--rh-white);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0,0,0,.4);
-  color: var(--rh-black);
-}
-.sum-card-top {
-  background: var(--rh-black);
-  padding: 20px 28px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  border-bottom: 4px solid var(--rh-red);
-}
-.sum-top-brand { display: flex; align-items: center; gap: 14px; }
-.sum-rh-badge {
-  background: var(--rh-red); border-radius: 4px;
-  width: 40px; height: 40px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--fd); font-weight: 900; font-size: 14px; color: white; letter-spacing: -1px;
-}
-.sum-top-text strong { font-family: var(--fd); font-size: 16px; font-weight: 700; color: white; display: block; }
-.sum-top-text span { font-size: 11px; color: #8A8D90; }
-.sum-top-meta { text-align: right; }
-.sum-top-meta .sum-date { font-size: 11px; color: #8A8D90; display: block; }
-.sum-top-meta .sum-mode { font-size: 10px; background: var(--rh-red-dim); border: 1px solid var(--rh-red); color: var(--rh-red); padding: 2px 8px; border-radius: 12px; margin-top: 5px; display: inline-block; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
-
-/* Inputs row */
-.sum-inputs {
-  background: var(--rh-gray-10);
-  padding: 12px 28px;
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--rh-gray-20);
-}
-.sum-inp-item {
-  flex: 1;
-  padding: 0 20px 0 0;
-  border-right: 1px solid var(--rh-gray-20);
-  margin-right: 20px;
-}
-.sum-inp-item:last-child { border-right: none; margin-right: 0; padding-right: 0; }
-.sum-inp-lbl { font-size: 10px; font-weight: 600; color: var(--rh-gray-60); text-transform: uppercase; letter-spacing: .8px; }
-.sum-inp-val { font-family: var(--fm); font-size: 20px; font-weight: 600; color: var(--rh-black); letter-spacing: -0.5px; line-height: 1.3; }
-.sum-inp-sub { font-size: 10px; color: var(--rh-gray-60); margin-top: 2px; }
-
-/* Tier grid */
-.sum-tiers { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; border-bottom: 1px solid var(--rh-gray-20); }
-.sum-tier { padding: 20px 24px; border-right: 1px solid var(--rh-gray-20); }
-.sum-tier:last-child { border-right: none; }
-.sum-tier-hdr { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid; }
-.sum-tier.kc .sum-tier-hdr { border-color: var(--rh-red); }
-.sum-tier.dg .sum-tier-hdr { border-color: var(--rh-teal); }
-.sum-tier.pg .sum-tier-hdr { border-color: var(--rh-blue); }
-.sum-tier-icon { width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-.sum-tier.kc .sum-tier-icon { background: var(--rh-red-dim); }
-.sum-tier.dg .sum-tier-icon { background: var(--rh-teal-dim); }
-.sum-tier.pg .sum-tier-icon { background: var(--rh-blue-dim); }
-.sum-tier-name { font-family: var(--fd); font-size: 13px; font-weight: 700; color: var(--rh-black); }
-.sum-tier-sub { font-size: 10px; color: var(--rh-gray-60); margin-top: 1px; }
-.sum-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 8px; }
-.sum-row:last-child { margin-bottom: 0; }
-.sum-row-lbl { font-size: 11px; color: var(--rh-gray-60); flex-shrink: 0; }
-.sum-row-val { font-family: var(--fm); font-size: 12px; font-weight: 600; color: var(--rh-black); text-align: right; }
-.sum-row-val.big { font-size: 18px; letter-spacing: -.5px; }
-.sum-row.accent .sum-row-val { color: var(--rh-red); }
-.sum-row.accent-teal .sum-row-val { color: var(--rh-teal); }
-.sum-row.accent-blue .sum-row-val { color: var(--rh-blue); }
-.sum-divider { height: 1px; background: var(--rh-gray-20); margin: 10px 0; }
-
-/* Footer of summary card */
-.sum-card-foot {
-  padding: 10px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--rh-gray-10);
-}
-.sum-foot-note { font-size: 10px; color: var(--rh-gray-60); }
-.sum-foot-asm { font-size: 10px; color: var(--rh-gray-60); text-align: right; max-width: 50%; }
-
-/* ══════════════════════════════════════════════════════════════
-   YAML / CONFIG TABS
-══════════════════════════════════════════════════════════════ */
-.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; flex-wrap: wrap; }
-.tab { padding: 8px 15px; font-size: 12px; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--ft); transition: color .15s; white-space: nowrap; }
-.tab:hover { color: var(--text2); }
-.tab.ak { color: var(--rh-red);  border-bottom-color: var(--rh-red);  font-weight: 500; }
-.tab.at { color: var(--rh-teal); border-bottom-color: var(--rh-teal); font-weight: 500; }
-.tab.ab { color: var(--rh-blue); border-bottom-color: var(--rh-blue); font-weight: 500; }
-.tp { display: none; } .tp.on { display: block; }
-
-.code-wrap { margin-bottom: 13px; }
-.code-hd { background: var(--bg2); border: 1px solid var(--border); border-bottom: none; border-radius: 6px 6px 0 0; padding: 7px 14px; display: flex; align-items: center; justify-content: space-between; }
-.code-lang { font-size: 10px; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: .7px; }
-.copy-btn { background: transparent; border: 1px solid var(--border); border-radius: 4px; color: var(--text3); cursor: pointer; font-size: 11px; font-family: var(--ft); padding: 2px 10px; transition: all .15s; }
-.copy-btn:hover { border-color: var(--rh-red); color: var(--rh-red); }
-.copy-btn.ok { border-color: var(--rh-green); color: var(--rh-green); }
-pre.cb { background: #0A0A0A; border: 1px solid var(--border); border-radius: 0 0 6px 6px; padding: 15px; font-family: var(--fm); font-size: 11.5px; line-height: 1.75; overflow-x: auto; white-space: pre; color: #CBD5E1; tab-size: 2; }
-
-/* Notes table */
-.bt { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 14px; }
-.bt th { text-align: left; font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .7px; padding: 5px 9px; border-bottom: 1px solid var(--border); }
-.bt td { padding: 5px 9px; border-bottom: 1px solid rgba(60,63,66,.5); }
-.bt tr:last-child td { border-bottom: none; }
-.bt .n { font-family: var(--fm); font-weight: 600; }
-.bt .nk { color: var(--rh-red); } .bt .nd { color: var(--rh-teal); } .bt .np { color: var(--rh-blue); }
-.bt .s { color: var(--text3); font-size: 11px; }
-.bt .a { font-size: 10px; color: var(--rh-yellow); }
-
-/* ══════════════════════════════════════════════════════════════
-   FOOTER
-══════════════════════════════════════════════════════════════ */
-footer { border-top: 1px solid var(--border); padding: 16px 32px; text-align: center; font-size: 11px; color: var(--text3); }
-footer a { color: var(--rh-blue); }
-
-/* ══════════════════════════════════════════════════════════════
-   PRINT / SCREENSHOT CSS
-══════════════════════════════════════════════════════════════ */
+.pf-v6-c-masthead { border-bottom:3px solid var(--rh-red)!important; min-height:56px; display:flex; align-items:stretch; }
+.pf-v6-c-masthead__main { display:flex; align-items:center; padding:0 16px 0 24px; border-right:1px solid var(--pf-v6-global--BorderColor--100,#444548); flex-shrink:0; }
+.pf-v6-c-masthead__content { display:flex; align-items:center; flex:1; padding:0 24px; gap:16px; }
+.rh-badge { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; background:var(--rh-red); border-radius:4px; font-family:'Red Hat Display',sans-serif; font-weight:900; font-size:13px; color:#fff; letter-spacing:-1px; flex-shrink:0; }
+.brand-text strong { font-family:'Red Hat Display',sans-serif; font-size:14px; font-weight:700; color:var(--pf-v6-global--Color--100,#e8e8e8); display:block; line-height:1.2; }
+.brand-text small { font-size:10px; color:var(--pf-v6-global--Color--300,#6A6E73); text-transform:uppercase; letter-spacing:.5px; }
+.masthead-center { display:flex; align-items:center; flex:1; }
+.masthead-right { display:flex; align-items:center; gap:8px; margin-left:auto; }
+.mode-panel { display:none; } .mode-panel.on { display:block; }
+.hero-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:12px; }
+.hero-card { cursor:text; }
+.hero-card:focus-within { outline:1px solid var(--rh-red); }
+.hero-icon { font-size:20px; display:block; margin-bottom:8px; }
+.hero-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--pf-v6-global--Color--200,#ababab); margin-bottom:4px; display:block; }
+input.hero-num { width:100%; background:transparent; border:none; outline:none; color:var(--rh-red); font-family:'Red Hat Mono',monospace; font-size:32px; font-weight:600; letter-spacing:-1px; padding:4px 0; -moz-appearance:textfield; }
+input.hero-num::-webkit-outer-spin-button, input.hero-num::-webkit-inner-spin-button { -webkit-appearance:none; }
+.hero-hint { font-size:11px; display:block; margin-top:4px; color:var(--pf-v6-global--Color--300,#6A6E73); }
+input[type=range] { flex:1; height:4px; -webkit-appearance:none; appearance:none; background:var(--pf-v6-global--BorderColor--100,#444548); border-radius:2px; outline:none; cursor:pointer; margin:6px 0 0; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--rh-red); border:2px solid var(--pf-v6-global--BackgroundColor--100,#1b1d21); cursor:pointer; }
+input[type=range]::-moz-range-thumb { width:14px; height:14px; border-radius:50%; background:var(--rh-red); border:2px solid var(--pf-v6-global--BackgroundColor--100,#1b1d21); cursor:pointer; }
+.field-row { display:flex; align-items:flex-start; gap:10px; }
+.field-row input[type=range] { margin-top:9px; }
+.asm-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px 28px; margin-top:16px; }
+.asm-group h4 { font-family:'Red Hat Display',sans-serif; font-size:10px; font-weight:700; color:var(--rh-red); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; padding-bottom:5px; border-bottom:1px solid var(--pf-v6-global--BorderColor--100,#444548); }
+.pct-bar { height:4px; border-radius:2px; background:var(--pf-v6-global--BorderColor--100,#444548); display:flex; gap:2px; margin-top:8px; overflow:hidden; }
+.pct-seg { height:100%; border-radius:1px; transition:width .2s; }
+.pct-warn { font-size:10px; color:#ff7070; margin-top:4px; }
+.pct-legend { font-size:10px; color:var(--pf-v6-global--Color--300,#6A6E73); margin-top:6px; }
+.radio-opt { display:flex; align-items:center; gap:8px; cursor:pointer; padding:8px 12px; border:1px solid var(--pf-v6-global--BorderColor--100,#444548); border-radius:4px; transition:all .15s; margin-bottom:6px; }
+.radio-opt:last-child { margin-bottom:0; }
+.radio-opt:hover { border-color:var(--pf-v6-global--Color--200,#ababab); }
+.radio-opt.sel { border-color:var(--rh-red); background:rgba(238,0,0,.08); }
+.radio-opt input[type=radio] { width:13px; height:13px; accent-color:var(--rh-red); flex-shrink:0; }
+.rl { font-size:12px; } .rs { font-size:10px; color:var(--pf-v6-global--Color--200,#ababab); margin-top:1px; }
+.derived-strip { display:flex; gap:20px; flex-wrap:wrap; align-items:center; padding:10px 16px; background:var(--pf-v6-global--BackgroundColor--200,#292d30); border:1px solid var(--pf-v6-global--BorderColor--100,#444548); border-radius:4px; margin-bottom:16px; }
+.ds-item { display:flex; flex-direction:column; }
+.ds-lbl { font-size:10px; text-transform:uppercase; letter-spacing:.7px; color:var(--pf-v6-global--Color--300,#6A6E73); }
+.ds-val { font-family:'Red Hat Mono',monospace; font-size:13px; font-weight:600; margin-top:1px; color:var(--pf-v6-global--Color--100,#e8e8e8); }
+.ds-val.kc { color:var(--rh-red); } .ds-val.dg { color:var(--rh-teal); } .ds-val.pg { color:var(--rh-blue); }
+.ds-sep { width:1px; background:var(--pf-v6-global--BorderColor--100,#444548); align-self:stretch; flex-shrink:0; }
+.sec-lbl { font-size:10px; font-weight:700; color:var(--pf-v6-global--Color--300,#6A6E73); text-transform:uppercase; letter-spacing:1.4px; margin-bottom:12px; }
+.tier-hdr { display:flex; align-items:center; gap:10px; margin:20px 0 10px; }
+.tier-sub { font-size:11px; color:var(--pf-v6-global--Color--200,#ababab); }
+.stat-grid { display:grid; gap:10px; margin-bottom:10px; }
+.stat-5 { grid-template-columns:repeat(5,1fr); } .stat-4 { grid-template-columns:repeat(4,1fr); }
+.stat-card { text-align:center; padding:12px 10px!important; }
+.stat-card.hi-kc { border-top:3px solid var(--rh-red)!important; }
+.stat-card.hi-dg { border-top:3px solid var(--rh-teal)!important; }
+.stat-card.hi-pg { border-top:3px solid var(--rh-blue)!important; }
+.stat-lbl { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--pf-v6-global--Color--200,#ababab); margin-bottom:6px; }
+.stat-val { font-family:'Red Hat Mono',monospace; font-size:20px; font-weight:600; letter-spacing:-.5px; line-height:1; color:var(--pf-v6-global--Color--100,#e8e8e8); }
+.stat-val.sm { font-size:13px; }
+.stat-card.hi-kc .stat-val { color:var(--rh-red); } .stat-card.hi-dg .stat-val { color:var(--rh-teal); } .stat-card.hi-pg .stat-val { color:var(--rh-blue); }
+.stat-unit { font-size:10px; color:var(--pf-v6-global--Color--300,#6A6E73); margin-top:5px; }
+.pf-v6-c-code-block__pre { max-height:440px; overflow-y:auto; }
+/* Summary card */
+.sum-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.sum-toolbar-right { display:flex; gap:8px; }
+.sum-card { background:#FFFFFF; border-radius:6px; overflow:hidden; box-shadow:0 4px 32px rgba(0,0,0,.45); color:#151515; }
+.sum-card-top { background:#151515; padding:18px 24px; display:flex; align-items:flex-start; justify-content:space-between; border-bottom:4px solid #EE0000; }
+.sum-top-brand { display:flex; align-items:center; gap:14px; }
+.sum-rh-badge { background:#EE0000; border-radius:4px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-family:'Red Hat Display',sans-serif; font-weight:900; font-size:14px; color:#fff; letter-spacing:-1px; }
+.sum-top-text strong { font-family:'Red Hat Display',sans-serif; font-size:16px; font-weight:700; color:#fff; display:block; }
+.sum-top-text span { font-size:11px; color:#8A8D90; }
+.sum-top-meta { text-align:right; }
+.sum-date { font-size:11px; color:#8A8D90; display:block; }
+.sum-mode-badge { font-size:10px; background:rgba(238,0,0,.12); border:1px solid #EE0000; color:#EE0000; padding:2px 8px; border-radius:12px; margin-top:5px; display:inline-block; font-weight:600; letter-spacing:.5px; text-transform:uppercase; }
+.sum-inputs { background:#F5F5F5; padding:12px 24px; display:flex; border-bottom:1px solid #D2D3D5; }
+.sum-inp-item { flex:1; padding:0 20px 0 0; border-right:1px solid #D2D3D5; margin-right:20px; }
+.sum-inp-item:last-child { border-right:none; margin-right:0; padding-right:0; }
+.sum-inp-lbl { font-size:10px; font-weight:600; color:#6A6E73; text-transform:uppercase; letter-spacing:.8px; }
+.sum-inp-val { font-family:'Red Hat Mono',monospace; font-size:20px; font-weight:600; color:#151515; letter-spacing:-.5px; line-height:1.3; }
+.sum-inp-sub { font-size:10px; color:#6A6E73; margin-top:2px; }
+.sum-tiers { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid #D2D3D5; }
+.sum-tier { padding:18px 22px; border-right:1px solid #D2D3D5; }
+.sum-tier:last-child { border-right:none; }
+.sum-tier-hdr { display:flex; align-items:center; gap:9px; margin-bottom:14px; padding-bottom:10px; border-bottom:2px solid; }
+.sum-tier.kc .sum-tier-hdr { border-color:#EE0000; } .sum-tier.dg .sum-tier-hdr { border-color:#009596; } .sum-tier.pg .sum-tier-hdr { border-color:#0066CC; }
+.sum-tier-icon { font-size:18px; }
+.sum-tier-name { font-family:'Red Hat Display',sans-serif; font-size:13px; font-weight:700; color:#151515; }
+.sum-tier-sub { font-size:10px; color:#6A6E73; }
+.sum-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; gap:8px; }
+.sum-row:last-child { margin-bottom:0; }
+.sum-row-lbl { font-size:11px; color:#6A6E73; flex-shrink:0; }
+.sum-row-val { font-family:'Red Hat Mono',monospace; font-size:12px; font-weight:600; color:#151515; text-align:right; }
+.sum-row-val.big { font-size:18px; letter-spacing:-.5px; }
+.sum-row.ak .sum-row-val { color:#EE0000; } .sum-row.at .sum-row-val { color:#009596; } .sum-row.ab .sum-row-val { color:#0066CC; }
+.sum-dvd { height:1px; background:#D2D3D5; margin:8px 0; }
+.sum-card-foot { padding:10px 24px; display:flex; align-items:center; justify-content:space-between; background:#F5F5F5; }
+.sum-foot-note { font-size:10px; color:#6A6E73; }
+.sum-foot-asm { font-size:10px; color:#6A6E73; text-align:right; max-width:50%; }
+code { font-family:'Red Hat Mono',monospace; font-size:11px; background:rgba(255,255,255,.07); padding:1px 6px; border-radius:3px; }
+.nt { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:14px; }
+.nt th { text-align:left; font-size:10px; font-weight:600; color:var(--pf-v6-global--Color--200,#ababab); text-transform:uppercase; letter-spacing:.7px; padding:5px 9px; border-bottom:1px solid var(--pf-v6-global--BorderColor--100,#444548); }
+.nt td { padding:5px 9px; border-bottom:1px solid rgba(68,69,72,.5); }
+.nt tr:last-child td { border-bottom:none; }
+.nt .n { font-family:'Red Hat Mono',monospace; font-weight:600; }
+.nt .nk { color:var(--rh-red); } .nt .nd { color:var(--rh-teal); } .nt .np { color:var(--rh-blue); }
+.nt .s { color:var(--pf-v6-global--Color--300,#6A6E73); font-size:11px; }
+.nt .a { font-size:10px; color:#e3b341; }
 @media print {
-  body { background: white !important; }
-  .hdr, .main > *:not(.print-zone), .print-toolbar, footer { display: none !important; }
-  .print-zone { display: block !important; }
-  .sum-card { box-shadow: none; border: 1px solid #D2D3D5; }
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background:#fff!important; }
+  .pf-v6-c-masthead,.print-hide,footer { display:none!important; }
+  .pf-v6-c-page__main-section { padding:0!important; }
+  .sum-card { box-shadow:none; border:1px solid #D2D3D5; }
+  * { -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
 }
-.print-zone { display: block; }
 </style>
 </head>
 <body>
-
-<!-- ══════════════════════════════════════════════════════════════
-     HEADER
-══════════════════════════════════════════════════════════════ -->
-<header class="hdr">
-  <div class="hdr-brand">
-    <div class="rh-hat">RH</div>
-    <div class="hdr-brand-text">
-      <strong>Keycloak Sizing</strong>
-      <span>Red Hat Build of Keycloak v26.x</span>
+<div class="pf-v6-c-page" id="page">
+<header class="pf-v6-c-masthead" id="masthead">
+  <div class="pf-v6-c-masthead__main">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="rh-badge">RH</span>
+      <div class="brand-text">
+        <strong>Keycloak Sizing</strong>
+        <small>Red Hat Build of Keycloak v26.x</small>
+      </div>
     </div>
   </div>
-
-  <div class="hdr-center">
-    <button class="mode-btn active" id="btn-quick" onclick="setMode('quick')">
-      <svg viewBox="0 0 16 16"><path d="M8 1l2 5h5l-4 3 1.5 5L8 11l-4.5 3L5 9 1 6h5z"/></svg>
-      Quick Estimate
-    </button>
-    <button class="mode-btn" id="btn-detailed" onclick="setMode('detailed')">
-      <svg viewBox="0 0 16 16"><path d="M2 3h12v1H2zm0 4h12v1H2zm0 4h8v1H2z"/></svg>
-      Detailed Mode
-    </button>
-  </div>
-
-  <div class="hdr-right">
-    <span class="hdr-pill pill-rh">v26.x</span>
-    <button class="hdr-link" onclick="resetAll()">↺ Reset</button>
-    <a href="https://www.keycloak.org/high-availability/multi-cluster/concepts-memory-and-cpu-sizing" target="_blank"><button class="hdr-link">Sizing docs ↗</button></a>
+  <div class="pf-v6-c-masthead__content">
+    <div class="masthead-center">
+      <div class="pf-v6-c-toggle-group pf-m-compact" aria-label="Input mode">
+        <div class="pf-v6-c-toggle-group__item">
+          <button type="button" class="pf-v6-c-toggle-group__button pf-m-selected" id="btn-quick" onclick="setMode('quick')">
+            <span class="pf-v6-c-toggle-group__text">⚡ Quick Estimate</span>
+          </button>
+        </div>
+        <div class="pf-v6-c-toggle-group__item">
+          <button type="button" class="pf-v6-c-toggle-group__button" id="btn-detailed" onclick="setMode('detailed')">
+            <span class="pf-v6-c-toggle-group__text">🔬 Detailed Mode</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="masthead-right">
+      <span class="pf-v6-c-label pf-m-gold pf-m-outline pf-m-compact"><span class="pf-v6-c-label__content"><span class="pf-v6-c-label__text">v26.x</span></span></span>
+      <button type="button" class="pf-v6-c-button pf-m-plain pf-m-small" onclick="resetAll()">↺ Reset</button>
+      <a href="https://www.keycloak.org/high-availability/multi-cluster/concepts-memory-and-cpu-sizing" target="_blank">
+        <button type="button" class="pf-v6-c-button pf-m-link pf-m-small">Sizing docs ↗</button>
+      </a>
+    </div>
   </div>
 </header>
-
-<!-- ══════════════════════════════════════════════════════════════
-     MAIN
-══════════════════════════════════════════════════════════════ -->
-<main class="main">
-
-<!-- ── QUICK MODE ── -->
+<main class="pf-v6-c-page__main" id="main-content" tabindex="-1">
+<!-- INPUTS SECTION -->
+<section class="pf-v6-c-page__main-section print-hide" style="padding-bottom:8px">
+<!-- QUICK MODE -->
 <div class="mode-panel on" id="pnl-quick">
   <div class="sec-lbl">Enter your numbers</div>
   <div class="hero-grid">
-    <div class="hero-card">
-      <span class="hero-icon">👥</span>
-      <span class="hero-lbl">Total Users</span>
-      <input class="hero-inp" type="number" id="q-users" value="50000" min="1">
-      <span class="hero-hint">Registered accounts in Keycloak</span>
-    </div>
-    <div class="hero-card">
-      <span class="hero-icon">🔌</span>
-      <span class="hero-lbl">Applications</span>
-      <input class="hero-inp" type="number" id="q-apps" value="10" min="1">
-      <span class="hero-hint">OAuth 2.0 client applications</span>
-    </div>
-    <div class="hero-card">
-      <span class="hero-icon">📈</span>
-      <span class="hero-lbl">Avg RPS</span>
-      <input class="hero-inp" type="number" id="q-rps" value="100" min="1">
-      <span class="hero-hint">Average requests / second to Keycloak</span>
-    </div>
-    <div class="hero-card">
-      <span class="hero-icon">⚡</span>
-      <span class="hero-lbl">Avg TPS</span>
-      <input class="hero-inp" type="number" id="q-tps" value="50" min="1">
-      <span class="hero-hint">Auth transactions / second (logins + token ops)</span>
-    </div>
+    <div class="pf-v6-c-card hero-card"><div class="pf-v6-c-card__body"><span class="hero-icon">👥</span><span class="hero-lbl">Total Users</span><input class="hero-num" type="number" id="q-users" value="50000" min="1"><span class="hero-hint">Registered accounts in Keycloak</span></div></div>
+    <div class="pf-v6-c-card hero-card"><div class="pf-v6-c-card__body"><span class="hero-icon">🔌</span><span class="hero-lbl">Applications</span><input class="hero-num" type="number" id="q-apps" value="10" min="1"><span class="hero-hint">OAuth 2.0 client applications</span></div></div>
+    <div class="pf-v6-c-card hero-card"><div class="pf-v6-c-card__body"><span class="hero-icon">📈</span><span class="hero-lbl">Avg RPS</span><input class="hero-num" type="number" id="q-rps" value="100" min="1"><span class="hero-hint">Average requests / second to Keycloak</span></div></div>
+    <div class="pf-v6-c-card hero-card"><div class="pf-v6-c-card__body"><span class="hero-icon">⚡</span><span class="hero-lbl">Avg TPS</span><input class="hero-num" type="number" id="q-tps" value="50" min="1"><span class="hero-hint">Auth transactions / second</span></div></div>
   </div>
-
-  <!-- Assumptions accordion -->
-  <div class="asm-wrap" id="asm-wrap">
-    <div class="asm-hdr" onclick="toggleAsm()">
-      <div class="asm-hdr-l">
-        <span style="font-size:15px">⚙</span>
-        <span class="asm-title">Assumptions &amp; Configuration</span>
-        <span class="asm-sub">— editable defaults based on Keycloak v26.x reference architecture</span>
-      </div>
-      <span class="asm-chev">▼</span>
-    </div>
-    <div class="asm-body">
-      <div class="asm-grid">
-        <div class="asm-group">
-          <h4>Traffic distribution (% of TPS)</h4>
-          <div class="asm-field">
-            <label>Password logins <span id="lbl-lpct">15%</span></label>
-            <input type="range" id="a-lpct" min="0" max="100" value="15" step="1">
+  <!-- Assumptions expandable -->
+  <div class="pf-v6-c-expandable-section" id="asm-section">
+    <button type="button" class="pf-v6-c-expandable-section__toggle" aria-expanded="false" aria-controls="asm-content" onclick="toggleAsm()">
+      <span class="pf-v6-c-expandable-section__toggle-icon"><svg fill="currentColor" height="1em" width="1em" viewBox="0 0 256 512"><path d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"/></svg></span>
+      <span class="pf-v6-c-expandable-section__toggle-text">⚙ Assumptions &amp; Configuration <span style="font-size:11px;font-weight:400;color:var(--pf-v6-global--Color--200,#ababab);margin-left:6px">— click to edit</span></span>
+    </button>
+    <div class="pf-v6-c-expandable-section__content" id="asm-content" hidden>
+      <div class="pf-v6-c-card" style="margin-top:8px"><div class="pf-v6-c-card__body">
+        <div class="asm-grid">
+          <!-- Traffic -->
+          <div class="asm-group"><h4>Traffic distribution (% of TPS)</h4>
+            <div class="pf-v6-c-form__group" style="margin-bottom:14px">
+              <div class="pf-v6-c-form__group-label"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Password logins</span></label><span id="lbl-lpct" style="font-family:'Red Hat Mono',monospace;font-size:11px;color:var(--rh-red);font-weight:600;float:right">15%</span></div>
+              <div class="pf-v6-c-form__group-control"><input type="range" id="a-lpct" min="0" max="100" value="15" step="1"></div>
+            </div>
+            <div class="pf-v6-c-form__group" style="margin-bottom:14px">
+              <div class="pf-v6-c-form__group-label"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Client credential grants</span></label><span id="lbl-gpct" style="font-family:'Red Hat Mono',monospace;font-size:11px;color:var(--rh-red);font-weight:600;float:right">30%</span></div>
+              <div class="pf-v6-c-form__group-control"><input type="range" id="a-gpct" min="0" max="100" value="30" step="1"></div>
+            </div>
+            <div class="pf-v6-c-form__group">
+              <div class="pf-v6-c-form__group-label"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Refresh token requests</span></label><span id="lbl-rpct" style="font-family:'Red Hat Mono',monospace;font-size:11px;color:var(--rh-red);font-weight:600;float:right">55%</span></div>
+              <div class="pf-v6-c-form__group-control"><input type="range" id="a-rpct" min="0" max="100" value="55" step="1"></div>
+            </div>
+            <div class="pct-bar"><div class="pct-seg" id="seg-l" style="background:var(--rh-red);width:15%"></div><div class="pct-seg" id="seg-g" style="background:#8476D1;width:30%"></div><div class="pct-seg" id="seg-r" style="background:var(--rh-teal);width:55%"></div></div>
+            <div class="pct-warn" id="pct-warn"></div>
+            <div class="pct-legend"><span style="color:var(--rh-red)">■</span> Logins &nbsp;<span style="color:#8476D1">■</span> Grants &nbsp;<span style="color:var(--rh-teal)">■</span> Refresh</div>
           </div>
-          <div class="asm-field">
-            <label>Client credential grants <span id="lbl-gpct">30%</span></label>
-            <input type="range" id="a-gpct" min="0" max="100" value="30" step="1">
+          <!-- Infrastructure -->
+          <div class="asm-group"><h4>Infrastructure</h4>
+            <div class="pf-v6-c-form__group" style="margin-bottom:12px"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Keycloak Pods</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control"><input type="number" id="a-pods" value="3" min="1" max="20"></span></div></div>
+            <div class="pf-v6-c-form__group" style="margin-bottom:12px"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Deployment mode</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="a-mode"><option value="single">Single cluster</option><option value="ha">HA — single cluster, multi-AZ</option><option value="multi">HA — active/active multi-cluster</option></select></span></div></div>
+            <div class="pf-v6-c-form__group" style="margin-bottom:12px"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Platform</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="a-platform"><option value="openshift">Red Hat OpenShift / RHOCP</option><option value="rhbk">Red Hat Build of Keycloak</option><option value="k8s">Kubernetes (vanilla)</option><option value="eks">Amazon EKS</option><option value="aks">Azure AKS</option><option value="gke">Google GKE</option></select></span></div></div>
+            <div class="pf-v6-c-form__group" style="margin-bottom:12px"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Infinispan / Data Grid</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="a-ispn"><option value="embedded">Embedded (single/HA cluster)</option><option value="external">External Data Grid (multi-cluster)</option></select></span></div></div>
+            <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">PostgreSQL operator</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="a-pg"><option value="cnpg">CloudNativePG (K8s native)</option><option value="aurora">Amazon Aurora PostgreSQL</option><option value="crunchydata">Crunchy Data PGO</option><option value="patroni">Patroni / standalone</option></select></span></div></div>
           </div>
-          <div class="asm-field">
-            <label>Refresh token requests <span id="lbl-rpct">55%</span></label>
-            <input type="range" id="a-rpct" min="0" max="100" value="55" step="1">
-          </div>
-          <div class="pct-bar">
-            <div class="pct-seg" id="seg-l" style="background:var(--rh-red);width:15%"></div>
-            <div class="pct-seg" id="seg-g" style="background:var(--rh-purple);width:30%"></div>
-            <div class="pct-seg" id="seg-r" style="background:var(--rh-teal);width:55%"></div>
-          </div>
-          <div class="pct-warn" id="pct-warn"></div>
-          <div class="pct-legend"><span style="color:var(--rh-red)">■</span> Logins &nbsp;<span style="color:var(--rh-purple)">■</span> Grants &nbsp;<span style="color:var(--rh-teal)">■</span> Refresh</div>
-        </div>
-
-        <div class="asm-group">
-          <h4>Infrastructure</h4>
-          <div class="asm-field">
-            <label>Keycloak Pods</label>
-            <input type="number" class="f-num" id="a-pods" value="3" min="1" max="20" style="width:100%">
-          </div>
-          <div class="asm-field">
-            <label>Deployment mode</label>
-            <select class="f-sel" id="a-mode">
-              <option value="single">Single cluster</option>
-              <option value="ha">HA — single cluster, multi-AZ</option>
-              <option value="multi">HA — active/active multi-cluster</option>
-            </select>
-          </div>
-          <div class="asm-field">
-            <label>Platform</label>
-            <select class="f-sel" id="a-platform">
-              <option value="openshift">Red Hat OpenShift / RHOCP</option>
-              <option value="rhbk">Red Hat Build of Keycloak</option>
-              <option value="k8s">Kubernetes (vanilla)</option>
-              <option value="eks">Amazon EKS</option>
-              <option value="aks">Azure AKS</option>
-              <option value="gke">Google GKE</option>
-            </select>
-          </div>
-          <div class="asm-field">
-            <label>Infinispan / Data Grid</label>
-            <select class="f-sel" id="a-ispn">
-              <option value="embedded">Embedded (single/HA cluster)</option>
-              <option value="external">External Data Grid (multi-cluster)</option>
-            </select>
-          </div>
-          <div class="asm-field">
-            <label>PostgreSQL operator</label>
-            <select class="f-sel" id="a-pg">
-              <option value="cnpg">CloudNativePG (K8s native)</option>
-              <option value="aurora">Amazon Aurora PostgreSQL</option>
-              <option value="crunchydata">Crunchy Data PGO</option>
-              <option value="patroni">Patroni / standalone</option>
-            </select>
+          <!-- Load profile -->
+          <div class="asm-group"><h4>Load profile &amp; sessions</h4>
+            <div class="pf-v6-c-form__group" style="margin-bottom:14px">
+              <div class="pf-v6-c-form__group-label"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Peak multiplier</span></label><span id="lbl-peak" style="font-family:'Red Hat Mono',monospace;font-size:11px;color:var(--rh-red);font-weight:600;float:right">2×</span></div>
+              <div class="pf-v6-c-form__group-control"><input type="range" id="a-peak" min="1" max="10" value="2" step="0.5"><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">peak = avg TPS × multiplier — sizing targets peak</span></div></div></div>
+            </div>
+            <div class="pf-v6-c-form__group" style="margin-bottom:14px">
+              <div class="pf-v6-c-form__group-label"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Concurrent session ratio</span></label><span id="lbl-sess" style="font-family:'Red Hat Mono',monospace;font-size:11px;color:var(--rh-red);font-weight:600;float:right">5%</span></div>
+              <div class="pf-v6-c-form__group-control"><input type="range" id="a-sess" min="1" max="50" value="5" step="1"><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">% of users active simultaneously at peak</span></div></div></div>
+            </div>
+            <div class="pf-v6-c-form__group" style="margin-bottom:14px">
+              <div class="pf-v6-c-form__group-label"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Auth session TTL</span></label><span id="lbl-ttl" style="font-family:'Red Hat Mono',monospace;font-size:11px;color:var(--rh-red);font-weight:600;float:right">300s</span></div>
+              <div class="pf-v6-c-form__group-control"><input type="range" id="a-ttl" min="60" max="3600" value="300" step="30"></div>
+            </div>
+            <div class="pf-v6-c-form__group" style="margin-bottom:14px"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Hashing algorithm</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="a-hash"><option value="argon2">Argon2id (OWASP default, 5 iter.)</option><option value="bcrypt">bcrypt</option><option value="pbkdf2">PBKDF2-SHA256</option></select></span></div></div>
+            <div class="pf-v6-c-form__group">
+              <div class="pf-v6-c-form__group-label"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">CPU headroom factor</span></label><span id="lbl-cpuhr" style="font-family:'Red Hat Mono',monospace;font-size:11px;color:var(--rh-red);font-weight:600;float:right">2.5×</span></div>
+              <div class="pf-v6-c-form__group-control"><input type="range" id="a-cpuhr" min="1.5" max="4" value="2.5" step="0.5"><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">CPU limit = request × factor</span></div></div></div>
+            </div>
           </div>
         </div>
-
-        <div class="asm-group">
-          <h4>Load profile &amp; sessions</h4>
-          <div class="asm-field">
-            <label>Peak multiplier <span id="lbl-peak">2×</span></label>
-            <input type="range" id="a-peak" min="1" max="10" value="2" step="0.5">
-            <div class="asm-hint">peak TPS = avg TPS × multiplier — sizing always targets peak</div>
-          </div>
-          <div class="asm-field">
-            <label>Concurrent session ratio <span id="lbl-sess">5%</span></label>
-            <input type="range" id="a-sess" min="1" max="50" value="5" step="1">
-            <div class="asm-hint">% of users active simultaneously at peak</div>
-          </div>
-          <div class="asm-field">
-            <label>Auth session TTL <span id="lbl-ttl">300s</span></label>
-            <input type="range" id="a-ttl" min="60" max="3600" value="300" step="30">
-          </div>
-          <div class="asm-field">
-            <label>Password hashing</label>
-            <select class="f-sel" id="a-hash">
-              <option value="argon2">Argon2id (OWASP default, 5 iter.)</option>
-              <option value="bcrypt">bcrypt</option>
-              <option value="pbkdf2">PBKDF2-SHA256</option>
-            </select>
-          </div>
-          <div class="asm-field">
-            <label>CPU headroom factor <span id="lbl-cpuhr">2.5×</span></label>
-            <input type="range" id="a-cpuhr" min="1.5" max="4" value="2.5" step="0.5">
-            <div class="asm-hint">CPU limit = request × factor (default +150%)</div>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">
-        <strong style="color:var(--text2)">Reference:</strong> Keycloak v26.x benchmark — OpenShift 4.18 on ROSA · Aurora PostgreSQL multi-AZ · OpenJDK 21 · Argon2id 5 iterations · 1M users / 20K clients.
-      </div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--pf-v6-global--BorderColor--100,#444548);font-size:11px;color:var(--pf-v6-global--Color--300,#6A6E73)"><strong style="color:var(--pf-v6-global--Color--200,#ababab)">Reference:</strong> KC v26.x benchmark — OpenShift 4.18 / ROSA · Aurora PostgreSQL multi-AZ · OpenJDK 21 · Argon2id 5 iter · 1M users.</div>
+      </div></div>
     </div>
   </div>
 </div><!-- /pnl-quick -->
 
-<!-- ── DETAILED MODE ── -->
+<!-- DETAILED MODE -->
 <div class="mode-panel" id="pnl-detailed">
   <div class="sec-lbl">Authentication workload &amp; infrastructure</div>
-  <div class="inp-grid">
-    <div class="card">
-      <div class="card-hd"><div class="card-dot dot-kc"></div>Authentication Workload</div>
-      <div class="field"><label>Password logins / second</label><div class="field-row"><input type="range" id="d-logins-r" min="0" max="300" value="15" step="1"><input type="number" class="f-num" id="d-logins" value="15" min="0" max="9999" style="width:70px"></div><div class="field-hint">1 vCPU per 15/sec · tested up to 300/sec</div></div>
-      <div class="field"><label>Client credential grants / second</label><div class="field-row"><input type="range" id="d-grants-r" min="0" max="2000" value="120" step="10"><input type="number" class="f-num" id="d-grants" value="120" min="0" max="9999" style="width:70px"></div><div class="field-hint">1 vCPU per 120/sec · tested up to 2,000/sec</div></div>
-      <div class="field"><label>Refresh token requests / second</label><div class="field-row"><input type="range" id="d-refresh-r" min="0" max="435" value="120" step="5"><input type="number" class="f-num" id="d-refresh" value="120" min="0" max="9999" style="width:70px"></div><div class="field-hint">1 vCPU per 120/sec · tested up to 435/sec</div></div>
-      <div class="field"><label>Password hashing</label><select class="f-sel" id="d-hash"><option value="argon2">Argon2id (OWASP default, 5 iter.)</option><option value="bcrypt">bcrypt</option><option value="pbkdf2">PBKDF2-SHA256</option></select></div>
-    </div>
-    <div class="card">
-      <div class="card-hd"><div class="card-dot dot-kc"></div>Deployment Configuration</div>
-      <div class="field"><label>Keycloak Pods</label><div class="field-row"><input type="range" id="d-pods-r" min="1" max="12" value="3" step="1"><input type="number" class="f-num" id="d-pods" value="3" min="1" max="99" style="width:70px"></div><div class="field-hint">Min 2 for HA · 3 recommended (one per AZ)</div></div>
-      <div class="field"><label>Platform</label><select class="f-sel" id="d-platform"><option value="openshift">Red Hat OpenShift / RHOCP</option><option value="rhbk">Red Hat Build of Keycloak</option><option value="k8s">Kubernetes (vanilla)</option><option value="eks">Amazon EKS</option><option value="aks">Azure AKS</option><option value="gke">Google GKE</option></select></div>
-      <div class="field"><label>Deployment mode</label>
-        <div class="radio-group">
-          <label class="radio-opt sel" id="d-lbl-single"><input type="radio" name="d-mode" value="single" checked><div><div class="rl">Single cluster</div><div class="rs">Embedded Infinispan · no external cache</div></div></label>
-          <label class="radio-opt" id="d-lbl-ha"><input type="radio" name="d-mode" value="ha"><div><div class="rl">HA — single cluster, multi-AZ</div><div class="rs">Embedded Infinispan · StatefulSet recommended</div></div></label>
-          <label class="radio-opt" id="d-lbl-multi"><input type="radio" name="d-mode" value="multi"><div><div class="rl">HA — active/active multi-cluster</div><div class="rs">Requires external Infinispan / Data Grid</div></div></label>
-        </div>
+  <div class="pf-v6-l-grid pf-m-gutter">
+    <div class="pf-v6-l-grid__item pf-m-4-col">
+      <div class="pf-v6-c-card" style="height:100%">
+        <div class="pf-v6-c-card__header"><div class="pf-v6-c-card__title"><h3 class="pf-v6-c-card__title-text"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rh-red);margin-right:8px;vertical-align:middle"></span>Authentication Workload</h3></div></div>
+        <div class="pf-v6-c-card__body"><div class="pf-v6-c-form">
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Password logins / second</span></label><div class="pf-v6-c-form__group-control"><div class="field-row"><input type="range" id="d-logins-r" min="0" max="300" value="15" step="1" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-logins" value="15" min="0" max="9999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">1 vCPU per 15/sec · up to 300/sec</span></div></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Client credential grants / second</span></label><div class="pf-v6-c-form__group-control"><div class="field-row"><input type="range" id="d-grants-r" min="0" max="2000" value="120" step="10" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-grants" value="120" min="0" max="9999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">1 vCPU per 120/sec · up to 2,000/sec</span></div></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Refresh token requests / second</span></label><div class="pf-v6-c-form__group-control"><div class="field-row"><input type="range" id="d-refresh-r" min="0" max="435" value="120" step="5" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-refresh" value="120" min="0" max="9999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">1 vCPU per 120/sec · up to 435/sec</span></div></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Hashing algorithm</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="d-hash"><option value="argon2">Argon2id (OWASP, 5 iter.)</option><option value="bcrypt">bcrypt</option><option value="pbkdf2">PBKDF2-SHA256</option></select></span></div></div>
+        </div></div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-hd"><div class="card-dot dot-pg"></div>Data &amp; Cache Scale</div>
-      <div class="field"><label>Total registered users</label><div class="field-row"><input type="range" id="d-users-r" min="1000" max="1000000" value="50000" step="1000"><input type="number" class="f-num" id="d-users" value="50000" min="1" max="9999999" style="width:82px"></div><div class="field-hint">Affects DB storage and cache sizing</div></div>
-      <div class="field"><label>Peak concurrent OAuth clients</label><div class="field-row"><input type="range" id="d-clients-r" min="100" max="50000" value="2500" step="100"><input type="number" class="f-num" id="d-clients" value="2500" min="1" max="999999" style="width:82px"></div><div class="field-hint">Cache overflow threshold: 2,500 clients</div></div>
-      <div class="field"><label>Peak cached sessions</label><div class="field-row"><input type="range" id="d-sessions-r" min="1000" max="200000" value="10000" step="1000"><input type="number" class="f-num" id="d-sessions" value="10000" min="0" max="9999999" style="width:82px"></div><div class="field-hint">Base: 10,000 sessions = 1,250 MiB KC RAM</div></div>
-      <div class="field"><label>Infinispan deployment</label><select class="f-sel" id="d-ispn"><option value="embedded">Embedded (single/HA cluster — default)</option><option value="external">External Data Grid (multi-cluster)</option></select></div>
-      <div class="field"><label>PostgreSQL operator</label><select class="f-sel" id="d-pg"><option value="cnpg">CloudNativePG (K8s native)</option><option value="aurora">Amazon Aurora PostgreSQL</option><option value="crunchydata">Crunchy Data PGO</option><option value="patroni">Patroni / standalone</option></select></div>
+    <div class="pf-v6-l-grid__item pf-m-4-col">
+      <div class="pf-v6-c-card" style="height:100%">
+        <div class="pf-v6-c-card__header"><div class="pf-v6-c-card__title"><h3 class="pf-v6-c-card__title-text"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rh-red);margin-right:8px;vertical-align:middle"></span>Deployment Configuration</h3></div></div>
+        <div class="pf-v6-c-card__body"><div class="pf-v6-c-form">
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Keycloak Pods</span></label><div class="pf-v6-c-form__group-control"><div class="field-row"><input type="range" id="d-pods-r" min="1" max="12" value="3" step="1" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-pods" value="3" min="1" max="99"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">Min 2 for HA · 3 recommended</span></div></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Platform</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="d-platform"><option value="openshift">Red Hat OpenShift / RHOCP</option><option value="rhbk">Red Hat Build of Keycloak</option><option value="k8s">Kubernetes</option><option value="eks">Amazon EKS</option><option value="aks">Azure AKS</option><option value="gke">Google GKE</option></select></span></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label" style="margin-bottom:8px"><span class="pf-v6-c-form__label-text">Deployment mode</span></label><div class="pf-v6-c-form__group-control">
+            <label class="radio-opt sel" id="d-lbl-single"><input type="radio" name="d-mode" value="single" checked><div><div class="rl">Single cluster</div><div class="rs">Embedded Infinispan</div></div></label>
+            <label class="radio-opt" id="d-lbl-ha"><input type="radio" name="d-mode" value="ha"><div><div class="rl">HA — single cluster, multi-AZ</div><div class="rs">Embedded Infinispan · StatefulSet</div></div></label>
+            <label class="radio-opt" id="d-lbl-multi"><input type="radio" name="d-mode" value="multi"><div><div class="rl">HA — active/active multi-cluster</div><div class="rs">Requires external Data Grid</div></div></label>
+          </div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="pf-v6-l-grid__item pf-m-4-col">
+      <div class="pf-v6-c-card" style="height:100%">
+        <div class="pf-v6-c-card__header"><div class="pf-v6-c-card__title"><h3 class="pf-v6-c-card__title-text"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rh-blue);margin-right:8px;vertical-align:middle"></span>Data &amp; Cache Scale</h3></div></div>
+        <div class="pf-v6-c-card__body"><div class="pf-v6-c-form">
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Total registered users</span></label><div class="pf-v6-c-form__group-control"><div class="field-row"><input type="range" id="d-users-r" min="1000" max="1000000" value="50000" step="1000" style="flex:1"><span class="pf-v6-c-form-control" style="width:88px;margin-top:4px"><input type="number" id="d-users" value="50000" min="1" max="9999999"></span></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Peak concurrent OAuth clients</span></label><div class="pf-v6-c-form__group-control"><div class="field-row"><input type="range" id="d-clients-r" min="100" max="50000" value="2500" step="100" style="flex:1"><span class="pf-v6-c-form-control" style="width:88px;margin-top:4px"><input type="number" id="d-clients" value="2500" min="1" max="999999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">Cache overflow threshold: 2,500</span></div></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Peak cached sessions</span></label><div class="pf-v6-c-form__group-control"><div class="field-row"><input type="range" id="d-sessions-r" min="1000" max="200000" value="10000" step="1000" style="flex:1"><span class="pf-v6-c-form-control" style="width:88px;margin-top:4px"><input type="number" id="d-sessions" value="10000" min="0" max="9999999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">Base: 10K sessions = 1,250 MiB KC RAM</span></div></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Infinispan deployment</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="d-ispn"><option value="embedded">Embedded (single/HA cluster)</option><option value="external">External Data Grid (multi-cluster)</option></select></span></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">PostgreSQL operator</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="d-pg"><option value="cnpg">CloudNativePG (K8s native)</option><option value="aurora">Amazon Aurora PostgreSQL</option><option value="crunchydata">Crunchy Data PGO</option><option value="patroni">Patroni / standalone</option></select></span></div></div>
+        </div></div>
+      </div>
     </div>
   </div>
 </div><!-- /pnl-detailed -->
+</section><!-- /inputs -->
 
-<!-- ── DERIVED STRIP (shared) ── -->
-<div class="derived-strip" id="derived-strip">
-  <div class="ds-item"><div class="ds-lbl">Peak TPS</div><div class="ds-val" id="ds-peak">—</div></div>
-  <div class="ds-sep"></div>
-  <div class="ds-item"><div class="ds-lbl">→ Logins/s</div><div class="ds-val kc" id="ds-logins">—</div></div>
-  <div class="ds-item"><div class="ds-lbl">→ Grants/s</div><div class="ds-val kc" id="ds-grants">—</div></div>
-  <div class="ds-item"><div class="ds-lbl">→ Refresh/s</div><div class="ds-val kc" id="ds-refresh">—</div></div>
-  <div class="ds-sep"></div>
-  <div class="ds-item"><div class="ds-lbl">Sessions</div><div class="ds-val dg" id="ds-sessions">—</div></div>
-  <div class="ds-item"><div class="ds-lbl">OAuth Clients</div><div class="ds-val dg" id="ds-clients">—</div></div>
-  <div class="ds-sep"></div>
-  <div class="ds-item"><div class="ds-lbl">DB Auth Ops/s</div><div class="ds-val pg" id="ds-dbops">—</div></div>
-  <div class="ds-item"><div class="ds-lbl">Mode</div><div class="ds-val" id="ds-mode">—</div></div>
-</div>
+<!-- DERIVED + NOTICES -->
+<section class="pf-v6-c-page__main-section print-hide" style="padding-top:0;padding-bottom:0">
+  <div class="derived-strip" id="derived-strip">
+    <div class="ds-item"><div class="ds-lbl">Peak TPS</div><div class="ds-val" id="ds-peak">—</div></div>
+    <div class="ds-sep"></div>
+    <div class="ds-item"><div class="ds-lbl">→ Logins/s</div><div class="ds-val kc" id="ds-logins">—</div></div>
+    <div class="ds-item"><div class="ds-lbl">→ Grants/s</div><div class="ds-val kc" id="ds-grants">—</div></div>
+    <div class="ds-item"><div class="ds-lbl">→ Refresh/s</div><div class="ds-val kc" id="ds-refresh">—</div></div>
+    <div class="ds-sep"></div>
+    <div class="ds-item"><div class="ds-lbl">Sessions</div><div class="ds-val dg" id="ds-sessions">—</div></div>
+    <div class="ds-item"><div class="ds-lbl">OAuth Clients</div><div class="ds-val dg" id="ds-clients">—</div></div>
+    <div class="ds-sep"></div>
+    <div class="ds-item"><div class="ds-lbl">DB Auth Ops/s</div><div class="ds-val pg" id="ds-dbops">—</div></div>
+    <div class="ds-item"><div class="ds-lbl">Mode</div><div class="ds-val" id="ds-mode">—</div></div>
+  </div>
+  <div id="notices"></div>
+</section>
 
-<div id="notices"></div>
-
-<!-- ══════════════════════════════════════════════════════════════
-     RESULTS
-══════════════════════════════════════════════════════════════ -->
-<div class="sec-lbl">Sizing results</div>
-
-<!-- Keycloak -->
-<div class="tier-hdr"><span class="tpill tp-kc">Keycloak</span><span class="tier-sub">Per-pod sizing at peak load</span></div>
-<div class="mc-row mc-5">
-  <div class="mc hi-kc"><div class="mc-lbl">CPU Request</div><div class="mc-val" id="o-cpu-req">—</div><div class="mc-unit">vCPU / pod</div></div>
-  <div class="mc hi-kc"><div class="mc-lbl">CPU Limit</div><div class="mc-val" id="o-cpu-lim">—</div><div class="mc-unit">vCPU / pod</div></div>
-  <div class="mc hi-kc"><div class="mc-lbl">Memory Request</div><div class="mc-val" id="o-mem-req">—</div><div class="mc-unit">MiB / pod</div></div>
-  <div class="mc hi-kc"><div class="mc-lbl">Memory Limit</div><div class="mc-val" id="o-mem-lim">—</div><div class="mc-unit">MiB / pod</div></div>
-  <div class="mc"><div class="mc-lbl">JVM Heap</div><div class="mc-val" id="o-heap">—</div><div class="mc-unit">MiB</div></div>
-</div>
-<div class="mc-row mc-4" style="margin-bottom:6px">
-  <div class="mc"><div class="mc-lbl">DB Pool / pod</div><div class="mc-val" id="o-pool">30</div><div class="mc-unit">conns (init=min=max)</div></div>
-  <div class="mc"><div class="mc-lbl">HTTP Threads max</div><div class="mc-val" id="o-threads">—</div><div class="mc-unit">per pod</div></div>
-  <div class="mc"><div class="mc-lbl">Cluster CPU total</div><div class="mc-val" id="o-tot-cpu">—</div><div class="mc-unit">vCPU (all pods)</div></div>
-  <div class="mc"><div class="mc-lbl">Cluster Mem total</div><div class="mc-val" id="o-tot-mem">—</div><div class="mc-unit">GiB (all pods)</div></div>
-</div>
-<div id="cache-notice"></div>
-
-<!-- Data Grid -->
-<div class="tier-hdr"><span class="tpill tp-dg">Infinispan / Data Grid</span><span class="tier-sub" id="dg-sub">—</span></div>
-<div id="dg-notice"></div>
-<div class="mc-row mc-5">
-  <div class="mc hi-dg"><div class="mc-lbl">DG Pods</div><div class="mc-val" id="o-dg-pods">—</div><div class="mc-unit">per site</div></div>
-  <div class="mc hi-dg"><div class="mc-lbl">CPU Request</div><div class="mc-val" id="o-dg-cpu-req">—</div><div class="mc-unit">vCPU / pod</div></div>
-  <div class="mc hi-dg"><div class="mc-lbl">CPU Limit</div><div class="mc-val" id="o-dg-cpu-lim">—</div><div class="mc-unit">vCPU / pod</div></div>
-  <div class="mc hi-dg"><div class="mc-lbl">Memory Request</div><div class="mc-val" id="o-dg-mem-req">—</div><div class="mc-unit">MiB / pod</div></div>
-  <div class="mc hi-dg"><div class="mc-lbl">Memory Limit</div><div class="mc-val" id="o-dg-mem-lim">—</div><div class="mc-unit">MiB / pod</div></div>
-</div>
-<div class="mc-row mc-4" style="margin-bottom:6px">
-  <div class="mc"><div class="mc-lbl">JVM Heap</div><div class="mc-val" id="o-dg-heap">—</div><div class="mc-unit">MiB</div></div>
-  <div class="mc"><div class="mc-lbl">numOwners</div><div class="mc-val">2</div><div class="mc-unit">replicas / entry</div></div>
-  <div class="mc"><div class="mc-lbl">Auth Sessions est.</div><div class="mc-val" id="o-dg-sess">—</div><div class="mc-unit">concurrent</div></div>
-  <div class="mc"><div class="mc-lbl">DG Total Mem</div><div class="mc-val" id="o-dg-tot">—</div><div class="mc-unit">GiB</div></div>
-</div>
-
-<!-- PostgreSQL -->
-<div class="tier-hdr"><span class="tpill tp-pg">PostgreSQL</span><span class="tier-sub">Database sizing &amp; tuning</span></div>
-<div class="mc-row mc-5">
-  <div class="mc hi-pg"><div class="mc-lbl">Write IOPS</div><div class="mc-val" id="o-iops">—</div><div class="mc-unit">Aurora est.</div></div>
-  <div class="mc hi-pg"><div class="mc-lbl">DB vCPU</div><div class="mc-val" id="o-db-cpu">—</div><div class="mc-unit">low–high range</div></div>
-  <div class="mc hi-pg"><div class="mc-lbl">RAM</div><div class="mc-val" id="o-pg-ram">—</div><div class="mc-unit">GiB total</div></div>
-  <div class="mc hi-pg"><div class="mc-lbl">Storage</div><div class="mc-val" id="o-pg-stor">—</div><div class="mc-unit">GiB</div></div>
-  <div class="mc"><div class="mc-lbl">Max Connections</div><div class="mc-val" id="o-pg-conn">—</div><div class="mc-unit">total pool</div></div>
-</div>
-<div class="mc-row mc-4" style="margin-bottom:6px">
-  <div class="mc"><div class="mc-lbl">shared_buffers</div><div class="mc-val" id="o-pg-sb">—</div><div class="mc-unit">MB</div></div>
-  <div class="mc"><div class="mc-lbl">effective_cache</div><div class="mc-val" id="o-pg-ec">—</div><div class="mc-unit">MB</div></div>
-  <div class="mc"><div class="mc-lbl">work_mem</div><div class="mc-val" id="o-pg-wm">—</div><div class="mc-unit">MB</div></div>
-  <div class="mc"><div class="mc-lbl">Cloud Instance</div><div class="mc-val sm" id="o-db-inst">—</div><div class="mc-unit">Aurora equiv.</div></div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════
-     PRESENTATION SUMMARY
-══════════════════════════════════════════════════════════════ -->
-<div class="dvd"></div>
-<div class="sum-section print-zone">
-  <div class="sum-toolbar print-toolbar">
+<!-- RESULTS -->
+<section class="pf-v6-c-page__main-section print-hide" style="padding-top:0">
+  <div class="sec-lbl">Sizing results</div>
+  <div class="tier-hdr"><span class="pf-v6-c-label pf-m-red pf-m-outline"><span class="pf-v6-c-label__content"><span class="pf-v6-c-label__text">Keycloak</span></span></span><span class="tier-sub">Per-pod sizing at peak load</span></div>
+  <div class="stat-grid stat-5">
+    <div class="pf-v6-c-card stat-card hi-kc"><div class="stat-lbl">CPU Request</div><div class="stat-val" id="o-cpu-req">—</div><div class="stat-unit">vCPU / pod</div></div>
+    <div class="pf-v6-c-card stat-card hi-kc"><div class="stat-lbl">CPU Limit</div><div class="stat-val" id="o-cpu-lim">—</div><div class="stat-unit">vCPU / pod</div></div>
+    <div class="pf-v6-c-card stat-card hi-kc"><div class="stat-lbl">Memory Request</div><div class="stat-val" id="o-mem-req">—</div><div class="stat-unit">MiB / pod</div></div>
+    <div class="pf-v6-c-card stat-card hi-kc"><div class="stat-lbl">Memory Limit</div><div class="stat-val" id="o-mem-lim">—</div><div class="stat-unit">MiB / pod</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">JVM Heap</div><div class="stat-val" id="o-heap">—</div><div class="stat-unit">MiB</div></div>
+  </div>
+  <div class="stat-grid stat-4" style="margin-bottom:6px">
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">DB Pool / pod</div><div class="stat-val" id="o-pool">30</div><div class="stat-unit">conns (init=min=max)</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">HTTP Threads max</div><div class="stat-val" id="o-threads">—</div><div class="stat-unit">per pod</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">Cluster CPU total</div><div class="stat-val" id="o-tot-cpu">—</div><div class="stat-unit">vCPU (all pods)</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">Cluster Mem total</div><div class="stat-val" id="o-tot-mem">—</div><div class="stat-unit">GiB (all pods)</div></div>
+  </div>
+  <div id="cache-notice"></div>
+  <div class="tier-hdr"><span class="pf-v6-c-label pf-m-teal pf-m-outline"><span class="pf-v6-c-label__content"><span class="pf-v6-c-label__text">Infinispan / Data Grid</span></span></span><span class="tier-sub" id="dg-sub">—</span></div>
+  <div id="dg-notice"></div>
+  <div class="stat-grid stat-5">
+    <div class="pf-v6-c-card stat-card hi-dg"><div class="stat-lbl">DG Pods</div><div class="stat-val" id="o-dg-pods">—</div><div class="stat-unit">per site</div></div>
+    <div class="pf-v6-c-card stat-card hi-dg"><div class="stat-lbl">CPU Request</div><div class="stat-val" id="o-dg-cpu-req">—</div><div class="stat-unit">vCPU / pod</div></div>
+    <div class="pf-v6-c-card stat-card hi-dg"><div class="stat-lbl">CPU Limit</div><div class="stat-val" id="o-dg-cpu-lim">—</div><div class="stat-unit">vCPU / pod</div></div>
+    <div class="pf-v6-c-card stat-card hi-dg"><div class="stat-lbl">Memory Request</div><div class="stat-val" id="o-dg-mem-req">—</div><div class="stat-unit">MiB / pod</div></div>
+    <div class="pf-v6-c-card stat-card hi-dg"><div class="stat-lbl">Memory Limit</div><div class="stat-val" id="o-dg-mem-lim">—</div><div class="stat-unit">MiB / pod</div></div>
+  </div>
+  <div class="stat-grid stat-4" style="margin-bottom:6px">
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">JVM Heap</div><div class="stat-val" id="o-dg-heap">—</div><div class="stat-unit">MiB</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">numOwners</div><div class="stat-val">2</div><div class="stat-unit">replicas / entry</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">Auth Sessions est.</div><div class="stat-val" id="o-dg-sess">—</div><div class="stat-unit">concurrent</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">DG Total Mem</div><div class="stat-val" id="o-dg-tot">—</div><div class="stat-unit">GiB</div></div>
+  </div>
+  <div class="tier-hdr"><span class="pf-v6-c-label pf-m-blue pf-m-outline"><span class="pf-v6-c-label__content"><span class="pf-v6-c-label__text">PostgreSQL</span></span></span><span class="tier-sub">Database sizing &amp; tuning</span></div>
+  <div class="stat-grid stat-5">
+    <div class="pf-v6-c-card stat-card hi-pg"><div class="stat-lbl">Write IOPS</div><div class="stat-val" id="o-iops">—</div><div class="stat-unit">Aurora est.</div></div>
+    <div class="pf-v6-c-card stat-card hi-pg"><div class="stat-lbl">DB vCPU</div><div class="stat-val" id="o-db-cpu">—</div><div class="stat-unit">low–high</div></div>
+    <div class="pf-v6-c-card stat-card hi-pg"><div class="stat-lbl">RAM</div><div class="stat-val" id="o-pg-ram">—</div><div class="stat-unit">GiB total</div></div>
+    <div class="pf-v6-c-card stat-card hi-pg"><div class="stat-lbl">Storage</div><div class="stat-val" id="o-pg-stor">—</div><div class="stat-unit">GiB</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">Max Connections</div><div class="stat-val" id="o-pg-conn">—</div><div class="stat-unit">total pool</div></div>
+  </div>
+  <div class="stat-grid stat-4">
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">shared_buffers</div><div class="stat-val" id="o-pg-sb">—</div><div class="stat-unit">MB</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">effective_cache</div><div class="stat-val" id="o-pg-ec">—</div><div class="stat-unit">MB</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">work_mem</div><div class="stat-val" id="o-pg-wm">—</div><div class="stat-unit">MB</div></div>
+    <div class="pf-v6-c-card stat-card"><div class="stat-lbl">Cloud Instance</div><div class="stat-val sm" id="o-db-inst">—</div><div class="stat-unit">Aurora equiv.</div></div>
+  </div>
+</section><!-- /results -->
+<!-- SUMMARY -->
+<section class="pf-v6-c-page__main-section">
+  <hr class="pf-v6-c-divider print-hide">
+  <div class="sum-toolbar print-hide">
     <div class="sec-lbl" style="margin-bottom:0">Presentation summary</div>
     <div class="sum-toolbar-right">
-      <button class="sum-action secondary" onclick="copyText()">
-        <svg viewBox="0 0 16 16"><path d="M2 2h9v2H4v9H2V2zm3 3h9v9H5V5z"/></svg>
-        Copy as text
-      </button>
-      <button class="sum-action primary" onclick="window.print()">
-        <svg viewBox="0 0 16 16"><path d="M4 1h8v3H4zm-2 4h12v6h-2V8H4v3H2V5zm3 5h6v4H5v-4z"/></svg>
-        Print / Save PDF
-      </button>
+      <button type="button" class="pf-v6-c-button pf-m-secondary" onclick="copyText()">📋 Copy as text</button>
+      <button type="button" class="pf-v6-c-button pf-m-primary" onclick="window.print()">🖨 Print / Save PDF</button>
     </div>
   </div>
-
   <div class="sum-card" id="sum-card">
-    <!-- Header -->
     <div class="sum-card-top">
-      <div class="sum-top-brand">
-        <div class="sum-rh-badge">RH</div>
-        <div class="sum-top-text">
-          <strong>Keycloak IAM Platform — Infrastructure Sizing</strong>
-          <span>Red Hat Build of Keycloak v26.x · <span id="s-platform-lbl">OpenShift</span></span>
-        </div>
-      </div>
-      <div class="sum-top-meta">
-        <span class="sum-date" id="s-date">—</span>
-        <span class="sum-mode" id="s-mode-badge">Quick Estimate</span>
-      </div>
+      <div class="sum-top-brand"><div class="sum-rh-badge">RH</div><div class="sum-top-text"><strong>Keycloak IAM Platform — Infrastructure Sizing</strong><span>Red Hat Build of Keycloak v26.x · <span id="s-platform-lbl">OpenShift</span></span></div></div>
+      <div class="sum-top-meta"><span class="sum-date" id="s-date">—</span><span class="sum-mode-badge" id="s-mode-badge">Quick</span></div>
     </div>
-
-    <!-- Input parameters -->
     <div class="sum-inputs">
-      <div class="sum-inp-item">
-        <div class="sum-inp-lbl">Users</div>
-        <div class="sum-inp-val" id="s-users">—</div>
-        <div class="sum-inp-sub">registered accounts</div>
-      </div>
-      <div class="sum-inp-item">
-        <div class="sum-inp-lbl">Applications</div>
-        <div class="sum-inp-val" id="s-apps">—</div>
-        <div class="sum-inp-sub">OAuth 2.0 clients</div>
-      </div>
-      <div class="sum-inp-item">
-        <div class="sum-inp-lbl">Peak TPS</div>
-        <div class="sum-inp-val" id="s-peak-tps">—</div>
-        <div class="sum-inp-sub">auth transactions / sec</div>
-      </div>
-      <div class="sum-inp-item">
-        <div class="sum-inp-lbl">Deployment</div>
-        <div class="sum-inp-val" id="s-deploy-mode" style="font-size:14px;letter-spacing:0">—</div>
-        <div class="sum-inp-sub" id="s-ispn-mode-sub">—</div>
-      </div>
+      <div class="sum-inp-item"><div class="sum-inp-lbl">Users</div><div class="sum-inp-val" id="s-users">—</div><div class="sum-inp-sub">registered accounts</div></div>
+      <div class="sum-inp-item"><div class="sum-inp-lbl">Applications</div><div class="sum-inp-val" id="s-apps">—</div><div class="sum-inp-sub">OAuth 2.0 clients</div></div>
+      <div class="sum-inp-item"><div class="sum-inp-lbl">Peak TPS</div><div class="sum-inp-val" id="s-peak-tps">—</div><div class="sum-inp-sub">auth transactions / sec</div></div>
+      <div class="sum-inp-item"><div class="sum-inp-lbl">Deployment</div><div class="sum-inp-val" id="s-deploy-mode" style="font-size:14px;letter-spacing:0">—</div><div class="sum-inp-sub" id="s-ispn-mode-sub">—</div></div>
     </div>
-
-    <!-- 3 tier cards -->
     <div class="sum-tiers">
-      <!-- Keycloak -->
       <div class="sum-tier kc">
-        <div class="sum-tier-hdr">
-          <div class="sum-tier-icon">🔐</div>
-          <div>
-            <div class="sum-tier-name">Keycloak</div>
-            <div class="sum-tier-sub" id="s-kc-pods-sub">—</div>
-          </div>
-        </div>
-        <div class="sum-row accent">
-          <span class="sum-row-lbl">CPU request</span>
-          <span class="sum-row-val big" id="s-kc-cpu-req">—</span>
-        </div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">CPU limit</span>
-          <span class="sum-row-val" id="s-kc-cpu-lim">—</span>
-        </div>
-        <div class="sum-divider"></div>
-        <div class="sum-row accent">
-          <span class="sum-row-lbl">Memory request</span>
-          <span class="sum-row-val big" id="s-kc-mem-req">—</span>
-        </div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">Memory limit</span>
-          <span class="sum-row-val" id="s-kc-mem-lim">—</span>
-        </div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">JVM Heap</span>
-          <span class="sum-row-val" id="s-kc-heap">—</span>
-        </div>
-        <div class="sum-divider"></div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">DB pool / pod</span>
-          <span class="sum-row-val" id="s-kc-pool">—</span>
-        </div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">HTTP threads</span>
-          <span class="sum-row-val" id="s-kc-threads">—</span>
-        </div>
+        <div class="sum-tier-hdr"><span class="sum-tier-icon">🔐</span><div><div class="sum-tier-name">Keycloak</div><div class="sum-tier-sub" id="s-kc-pods-sub">—</div></div></div>
+        <div class="sum-row ak"><span class="sum-row-lbl">CPU request</span><span class="sum-row-val big" id="s-kc-cpu-req">—</span></div>
+        <div class="sum-row"><span class="sum-row-lbl">CPU limit</span><span class="sum-row-val" id="s-kc-cpu-lim">—</span></div>
+        <div class="sum-dvd"></div>
+        <div class="sum-row ak"><span class="sum-row-lbl">Memory request</span><span class="sum-row-val big" id="s-kc-mem-req">—</span></div>
+        <div class="sum-row"><span class="sum-row-lbl">Memory limit</span><span class="sum-row-val" id="s-kc-mem-lim">—</span></div>
+        <div class="sum-row"><span class="sum-row-lbl">JVM Heap</span><span class="sum-row-val" id="s-kc-heap">—</span></div>
+        <div class="sum-dvd"></div>
+        <div class="sum-row"><span class="sum-row-lbl">DB pool / pod</span><span class="sum-row-val" id="s-kc-pool">—</span></div>
+        <div class="sum-row"><span class="sum-row-lbl">HTTP threads</span><span class="sum-row-val" id="s-kc-threads">—</span></div>
       </div>
-
-      <!-- Infinispan -->
       <div class="sum-tier dg">
-        <div class="sum-tier-hdr">
-          <div class="sum-tier-icon">🗄</div>
-          <div>
-            <div class="sum-tier-name">Infinispan / Data Grid</div>
-            <div class="sum-tier-sub" id="s-dg-mode-sub">—</div>
-          </div>
-        </div>
+        <div class="sum-tier-hdr"><span class="sum-tier-icon">🗄</span><div><div class="sum-tier-name">Infinispan / Data Grid</div><div class="sum-tier-sub" id="s-dg-mode-sub">—</div></div></div>
         <div id="s-dg-body">
-          <div class="sum-row accent-teal">
-            <span class="sum-row-lbl">Pods per site</span>
-            <span class="sum-row-val big" id="s-dg-pods">—</span>
-          </div>
-          <div class="sum-row">
-            <span class="sum-row-lbl">CPU request</span>
-            <span class="sum-row-val" id="s-dg-cpu-req">—</span>
-          </div>
-          <div class="sum-row">
-            <span class="sum-row-lbl">CPU limit</span>
-            <span class="sum-row-val" id="s-dg-cpu-lim">—</span>
-          </div>
-          <div class="sum-divider"></div>
-          <div class="sum-row">
-            <span class="sum-row-lbl">Memory request</span>
-            <span class="sum-row-val" id="s-dg-mem-req">—</span>
-          </div>
-          <div class="sum-row">
-            <span class="sum-row-lbl">Memory limit</span>
-            <span class="sum-row-val" id="s-dg-mem-lim">—</span>
-          </div>
-          <div class="sum-row">
-            <span class="sum-row-lbl">JVM Heap</span>
-            <span class="sum-row-val" id="s-dg-heap">—</span>
-          </div>
-          <div class="sum-divider"></div>
-          <div class="sum-row">
-            <span class="sum-row-lbl">numOwners</span>
-            <span class="sum-row-val">2 (HA)</span>
-          </div>
-          <div class="sum-row">
-            <span class="sum-row-lbl">Auth sessions est.</span>
-            <span class="sum-row-val" id="s-dg-sess">—</span>
-          </div>
+          <div class="sum-row at"><span class="sum-row-lbl">Pods per site</span><span class="sum-row-val big" id="s-dg-pods">—</span></div>
+          <div class="sum-row"><span class="sum-row-lbl">CPU request</span><span class="sum-row-val" id="s-dg-cpu-req">—</span></div>
+          <div class="sum-row"><span class="sum-row-lbl">CPU limit</span><span class="sum-row-val" id="s-dg-cpu-lim">—</span></div>
+          <div class="sum-dvd"></div>
+          <div class="sum-row"><span class="sum-row-lbl">Memory request</span><span class="sum-row-val" id="s-dg-mem-req">—</span></div>
+          <div class="sum-row"><span class="sum-row-lbl">Memory limit</span><span class="sum-row-val" id="s-dg-mem-lim">—</span></div>
+          <div class="sum-row"><span class="sum-row-lbl">JVM Heap</span><span class="sum-row-val" id="s-dg-heap">—</span></div>
+          <div class="sum-dvd"></div>
+          <div class="sum-row"><span class="sum-row-lbl">numOwners</span><span class="sum-row-val">2 (HA)</span></div>
+          <div class="sum-row"><span class="sum-row-lbl">Auth sessions est.</span><span class="sum-row-val" id="s-dg-sess">—</span></div>
         </div>
       </div>
-
-      <!-- PostgreSQL -->
       <div class="sum-tier pg">
-        <div class="sum-tier-hdr">
-          <div class="sum-tier-icon">🐘</div>
-          <div>
-            <div class="sum-tier-name">PostgreSQL</div>
-            <div class="sum-tier-sub">1 primary + 2 synchronous replicas</div>
-          </div>
-        </div>
-        <div class="sum-row accent-blue">
-          <span class="sum-row-lbl">vCPU</span>
-          <span class="sum-row-val big" id="s-pg-vcpu">—</span>
-        </div>
-        <div class="sum-row accent-blue">
-          <span class="sum-row-lbl">RAM</span>
-          <span class="sum-row-val big" id="s-pg-ram">—</span>
-        </div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">Storage</span>
-          <span class="sum-row-val" id="s-pg-stor">—</span>
-        </div>
-        <div class="sum-divider"></div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">Write IOPS</span>
-          <span class="sum-row-val" id="s-pg-iops">—</span>
-        </div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">Max connections</span>
-          <span class="sum-row-val" id="s-pg-conn">—</span>
-        </div>
-        <div class="sum-divider"></div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">shared_buffers</span>
-          <span class="sum-row-val" id="s-pg-sb">—</span>
-        </div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">effective_cache</span>
-          <span class="sum-row-val" id="s-pg-ec">—</span>
-        </div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">work_mem</span>
-          <span class="sum-row-val" id="s-pg-wm">—</span>
-        </div>
-        <div class="sum-divider"></div>
-        <div class="sum-row">
-          <span class="sum-row-lbl">Cloud instance</span>
-          <span class="sum-row-val" id="s-pg-inst">—</span>
-        </div>
+        <div class="sum-tier-hdr"><span class="sum-tier-icon">🐘</span><div><div class="sum-tier-name">PostgreSQL</div><div class="sum-tier-sub">1 primary + 2 synchronous replicas</div></div></div>
+        <div class="sum-row ab"><span class="sum-row-lbl">vCPU</span><span class="sum-row-val big" id="s-pg-vcpu">—</span></div>
+        <div class="sum-row ab"><span class="sum-row-lbl">RAM</span><span class="sum-row-val big" id="s-pg-ram">—</span></div>
+        <div class="sum-row"><span class="sum-row-lbl">Storage</span><span class="sum-row-val" id="s-pg-stor">—</span></div>
+        <div class="sum-dvd"></div>
+        <div class="sum-row"><span class="sum-row-lbl">Write IOPS</span><span class="sum-row-val" id="s-pg-iops">—</span></div>
+        <div class="sum-row"><span class="sum-row-lbl">Max connections</span><span class="sum-row-val" id="s-pg-conn">—</span></div>
+        <div class="sum-dvd"></div>
+        <div class="sum-row"><span class="sum-row-lbl">shared_buffers</span><span class="sum-row-val" id="s-pg-sb">—</span></div>
+        <div class="sum-row"><span class="sum-row-lbl">effective_cache</span><span class="sum-row-val" id="s-pg-ec">—</span></div>
+        <div class="sum-row"><span class="sum-row-lbl">work_mem</span><span class="sum-row-val" id="s-pg-wm">—</span></div>
+        <div class="sum-dvd"></div>
+        <div class="sum-row"><span class="sum-row-lbl">Cloud instance</span><span class="sum-row-val" id="s-pg-inst">—</span></div>
       </div>
     </div>
-
-    <!-- Card footer -->
     <div class="sum-card-foot">
-      <div class="sum-foot-note">
-        Based on official Keycloak v26.x benchmark data (OpenShift 4.18 / ROSA · Aurora PostgreSQL multi-AZ · OpenJDK 21 · Argon2id 5 iter · 1M users).
-        Always validate with load tests before production.
-      </div>
+      <div class="sum-foot-note">Based on official Keycloak v26.x benchmark (OpenShift 4.18/ROSA · Aurora PostgreSQL multi-AZ · OpenJDK 21 · Argon2id 5 iter · 1M users). Always validate with load tests.</div>
       <div class="sum-foot-asm" id="s-asm-footer">—</div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ══════════════════════════════════════════════════════════════
-     YAML CONFIGS
-══════════════════════════════════════════════════════════════ -->
-<div class="dvd"></div>
-<div class="sec-lbl">Generated configurations</div>
-<div class="tabs">
-  <button class="tab ak" onclick="ST(this,'p-k8s','k')">Keycloak K8s</button>
-  <button class="tab" onclick="ST(this,'p-op','k')">Keycloak Operator</button>
-  <button class="tab" onclick="ST(this,'p-ispn','t')">Infinispan CR</button>
-  <button class="tab" onclick="ST(this,'p-pg','b')">PostgreSQL CNPG</button>
-  <button class="tab" onclick="ST(this,'p-jvm','k')">JVM Flags</button>
-  <button class="tab" onclick="ST(this,'p-hpa','k')">HPA Config</button>
-  <button class="tab" onclick="ST(this,'p-notes','k')">Assumptions Log</button>
-</div>
-<div class="tp on" id="p-k8s"><div class="code-wrap"><div class="code-hd"><span class="code-lang">yaml — keycloak deployment</span><button class="copy-btn" onclick="cp('b-k8s',this)">Copy</button></div><pre class="cb" id="b-k8s"></pre></div></div>
-<div class="tp" id="p-op"><div class="code-wrap"><div class="code-hd"><span class="code-lang">yaml — keycloak operator cr</span><button class="copy-btn" onclick="cp('b-op',this)">Copy</button></div><pre class="cb" id="b-op"></pre></div></div>
-<div class="tp" id="p-ispn">
-  <div class="notice nt" style="margin-bottom:12px"><strong>When needed:</strong> External Data Grid is required only for multi-cluster active/active. For single/HA-cluster, embedded Infinispan is sufficient. Required caches: <code>authenticationSessions</code>, <code>actionTokens</code>, <code>loginFailures</code>, <code>work</code>.</div>
-  <div class="code-wrap"><div class="code-hd"><span class="code-lang">yaml — infinispan operator cr (infinispan.org/v1)</span><button class="copy-btn" onclick="cp('b-ispn',this)">Copy</button></div><pre class="cb" id="b-ispn"></pre></div>
-</div>
-<div class="tp" id="p-pg">
-  <div class="notice ni" style="margin-bottom:12px"><strong>CloudNativePG</strong> recommended for K8s-native PostgreSQL. On OpenShift use <strong>Crunchy Data PGO</strong>. AWS → Aurora PostgreSQL multi-AZ eliminates replication management.</div>
-  <div class="code-wrap"><div class="code-hd"><span class="code-lang">yaml — cloudnativepg cluster cr (postgresql.cnpg.io/v1)</span><button class="copy-btn" onclick="cp('b-pg',this)">Copy</button></div><pre class="cb" id="b-pg"></pre></div>
-</div>
-<div class="tp" id="p-jvm">
-  <div class="notice ni" style="margin-bottom:12px"><code>-XX:MaxRAMPercentage=70</code> is applied automatically when memory limits are set. Always set limits. Override via <code>JAVA_OPTS_KC_HEAP</code>.</div>
-  <div class="code-wrap"><div class="code-hd"><span class="code-lang">shell — jvm options (keycloak + data grid)</span><button class="copy-btn" onclick="cp('b-jvm',this)">Copy</button></div><pre class="cb" id="b-jvm"></pre></div>
-</div>
-<div class="tp" id="p-hpa">
-  <div class="notice nw" style="margin-bottom:12px"><strong>VPA not recommended</strong> — requires pod restarts, disrupting sessions. HPA only. Keycloak performance degrades significantly when CPU-throttled.</div>
-  <div class="code-wrap"><div class="code-hd"><span class="code-lang">yaml — hpa + poddisruptionbudget</span><button class="copy-btn" onclick="cp('b-hpa',this)">Copy</button></div><pre class="cb" id="b-hpa"></pre></div>
-</div>
-<div class="tp" id="p-notes"><div id="notes-body"></div></div>
+<!-- YAML / CONFIG TABS -->
+<section class="pf-v6-c-page__main-section print-hide">
+  <hr class="pf-v6-c-divider">
+  <div class="sec-lbl">Generated configurations</div>
+  <div class="pf-v6-c-tabs" id="yaml-tabs">
+    <ul class="pf-v6-c-tabs__list" role="tablist">
+      <li class="pf-v6-c-tabs__item pf-m-current" role="presentation" id="ti-k8s"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="true" onclick="ST('k8s')"><span class="pf-v6-c-tabs__item-text">Keycloak K8s</span></button></li>
+      <li class="pf-v6-c-tabs__item" role="presentation" id="ti-op"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('op')"><span class="pf-v6-c-tabs__item-text">Keycloak Operator</span></button></li>
+      <li class="pf-v6-c-tabs__item" role="presentation" id="ti-ispn"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('ispn')"><span class="pf-v6-c-tabs__item-text">Infinispan CR</span></button></li>
+      <li class="pf-v6-c-tabs__item" role="presentation" id="ti-pg"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('pg')"><span class="pf-v6-c-tabs__item-text">PostgreSQL CNPG</span></button></li>
+      <li class="pf-v6-c-tabs__item" role="presentation" id="ti-jvm"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('jvm')"><span class="pf-v6-c-tabs__item-text">JVM Flags</span></button></li>
+      <li class="pf-v6-c-tabs__item" role="presentation" id="ti-hpa"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('hpa')"><span class="pf-v6-c-tabs__item-text">HPA Config</span></button></li>
+      <li class="pf-v6-c-tabs__item" role="presentation" id="ti-notes"><button class="pf-v6-c-tabs__link" role="tab" aria-selected="false" onclick="ST('notes')"><span class="pf-v6-c-tabs__item-text">Assumptions Log</span></button></li>
+    </ul>
+  </div>
+  <section class="pf-v6-c-tab-content" id="tp-k8s" role="tabpanel"><div class="pf-v6-c-tab-content__body"><div class="pf-v6-c-code-block"><div class="pf-v6-c-code-block__header"><span style="font-size:10px;color:var(--pf-v6-global--Color--200,#ababab);text-transform:uppercase;letter-spacing:.7px">yaml — keycloak kubernetes deployment</span><div class="pf-v6-c-code-block__actions"><div class="pf-v6-c-code-block__actions-item"><button type="button" class="pf-v6-c-button pf-m-link pf-m-small" onclick="cp('b-k8s',this)">Copy</button></div></div></div><div class="pf-v6-c-code-block__content"><pre class="pf-v6-c-code-block__pre" style="max-height:440px;overflow-y:auto"><code class="pf-v6-c-code-block__code" id="b-k8s"></code></pre></div></div></div></section>
+  <section class="pf-v6-c-tab-content" id="tp-op" role="tabpanel" hidden><div class="pf-v6-c-tab-content__body"><div class="pf-v6-c-code-block"><div class="pf-v6-c-code-block__header"><span style="font-size:10px;color:var(--pf-v6-global--Color--200,#ababab);text-transform:uppercase;letter-spacing:.7px">yaml — keycloak operator cr</span><div class="pf-v6-c-code-block__actions"><div class="pf-v6-c-code-block__actions-item"><button type="button" class="pf-v6-c-button pf-m-link pf-m-small" onclick="cp('b-op',this)">Copy</button></div></div></div><div class="pf-v6-c-code-block__content"><pre class="pf-v6-c-code-block__pre" style="max-height:440px;overflow-y:auto"><code class="pf-v6-c-code-block__code" id="b-op"></code></pre></div></div></div></section>
+  <section class="pf-v6-c-tab-content" id="tp-ispn" role="tabpanel" hidden><div class="pf-v6-c-tab-content__body"><div class="pf-v6-c-alert pf-m-info pf-m-inline" style="margin-bottom:12px"><div class="pf-v6-c-alert__icon">ℹ</div><p class="pf-v6-c-alert__title">External Data Grid required only for multi-cluster. Single/HA-cluster uses embedded Infinispan. Required caches: <code>authenticationSessions</code>, <code>actionTokens</code>, <code>loginFailures</code>, <code>work</code>.</p></div><div class="pf-v6-c-code-block"><div class="pf-v6-c-code-block__header"><span style="font-size:10px;color:var(--pf-v6-global--Color--200,#ababab);text-transform:uppercase;letter-spacing:.7px">yaml — infinispan operator cr</span><div class="pf-v6-c-code-block__actions"><div class="pf-v6-c-code-block__actions-item"><button type="button" class="pf-v6-c-button pf-m-link pf-m-small" onclick="cp('b-ispn',this)">Copy</button></div></div></div><div class="pf-v6-c-code-block__content"><pre class="pf-v6-c-code-block__pre" style="max-height:440px;overflow-y:auto"><code class="pf-v6-c-code-block__code" id="b-ispn"></code></pre></div></div></div></section>
+  <section class="pf-v6-c-tab-content" id="tp-pg" role="tabpanel" hidden><div class="pf-v6-c-tab-content__body"><div class="pf-v6-c-alert pf-m-info pf-m-inline" style="margin-bottom:12px"><div class="pf-v6-c-alert__icon">ℹ</div><p class="pf-v6-c-alert__title"><strong>CloudNativePG</strong> for K8s · <strong>Crunchy Data PGO</strong> for OpenShift · Aurora PostgreSQL for AWS managed.</p></div><div class="pf-v6-c-code-block"><div class="pf-v6-c-code-block__header"><span style="font-size:10px;color:var(--pf-v6-global--Color--200,#ababab);text-transform:uppercase;letter-spacing:.7px">yaml — cloudnativepg cluster cr</span><div class="pf-v6-c-code-block__actions"><div class="pf-v6-c-code-block__actions-item"><button type="button" class="pf-v6-c-button pf-m-link pf-m-small" onclick="cp('b-pg',this)">Copy</button></div></div></div><div class="pf-v6-c-code-block__content"><pre class="pf-v6-c-code-block__pre" style="max-height:440px;overflow-y:auto"><code class="pf-v6-c-code-block__code" id="b-pg"></code></pre></div></div></div></section>
+  <section class="pf-v6-c-tab-content" id="tp-jvm" role="tabpanel" hidden><div class="pf-v6-c-tab-content__body"><div class="pf-v6-c-alert pf-m-info pf-m-inline" style="margin-bottom:12px"><div class="pf-v6-c-alert__icon">ℹ</div><p class="pf-v6-c-alert__title"><code>-XX:MaxRAMPercentage=70</code> applied automatically when memory limits are set. Override via <code>JAVA_OPTS_KC_HEAP</code>.</p></div><div class="pf-v6-c-code-block"><div class="pf-v6-c-code-block__header"><span style="font-size:10px;color:var(--pf-v6-global--Color--200,#ababab);text-transform:uppercase;letter-spacing:.7px">shell — jvm options</span><div class="pf-v6-c-code-block__actions"><div class="pf-v6-c-code-block__actions-item"><button type="button" class="pf-v6-c-button pf-m-link pf-m-small" onclick="cp('b-jvm',this)">Copy</button></div></div></div><div class="pf-v6-c-code-block__content"><pre class="pf-v6-c-code-block__pre" style="max-height:440px;overflow-y:auto"><code class="pf-v6-c-code-block__code" id="b-jvm"></code></pre></div></div></div></section>
+  <section class="pf-v6-c-tab-content" id="tp-hpa" role="tabpanel" hidden><div class="pf-v6-c-tab-content__body"><div class="pf-v6-c-alert pf-m-warning pf-m-inline" style="margin-bottom:12px"><div class="pf-v6-c-alert__icon">⚠</div><p class="pf-v6-c-alert__title"><strong>VPA not recommended</strong> — requires pod restarts disrupting sessions. Use HPA only.</p></div><div class="pf-v6-c-code-block"><div class="pf-v6-c-code-block__header"><span style="font-size:10px;color:var(--pf-v6-global--Color--200,#ababab);text-transform:uppercase;letter-spacing:.7px">yaml — hpa + poddisruptionbudget</span><div class="pf-v6-c-code-block__actions"><div class="pf-v6-c-code-block__actions-item"><button type="button" class="pf-v6-c-button pf-m-link pf-m-small" onclick="cp('b-hpa',this)">Copy</button></div></div></div><div class="pf-v6-c-code-block__content"><pre class="pf-v6-c-code-block__pre" style="max-height:440px;overflow-y:auto"><code class="pf-v6-c-code-block__code" id="b-hpa"></code></pre></div></div></div></section>
+  <section class="pf-v6-c-tab-content" id="tp-notes" role="tabpanel" hidden><div class="pf-v6-c-tab-content__body"><div id="notes-body"></div></div></section>
+</section>
 
-</main>
-<footer>
-  Keycloak sizing: <a href="https://www.keycloak.org/high-availability/multi-cluster/concepts-memory-and-cpu-sizing" target="_blank">official guide</a> ·
-  <a href="https://www.keycloak.org/2025/10/keycloak-benchmark" target="_blank">benchmark v26.4</a> ·
-  Infinispan: <a href="https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.4/html-single/data_grid_performance_and_sizing_guide/" target="_blank">Data Grid 8.4 sizing</a> ·
-  PostgreSQL: <a href="https://cloudnative-pg.io/docs/" target="_blank">CloudNativePG</a> ·
-  <a href="https://github.com/keycloak/keycloak" target="_blank">keycloak/keycloak</a> &nbsp;|&nbsp; Offline · no data sent
+<footer style="border-top:1px solid var(--pf-v6-global--BorderColor--100,#444548);padding:16px 24px;text-align:center;font-size:11px;color:var(--pf-v6-global--Color--300,#6A6E73)" class="print-hide">
+  Keycloak: <a href="https://www.keycloak.org/high-availability/multi-cluster/concepts-memory-and-cpu-sizing" target="_blank">official sizing guide</a> · <a href="https://www.keycloak.org/2025/10/keycloak-benchmark" target="_blank">benchmark v26.4</a> · <a href="https://access.redhat.com/documentation/en-us/red_hat_data_grid/8.4/html-single/data_grid_performance_and_sizing_guide/" target="_blank">Data Grid 8.4</a> · <a href="https://cloudnative-pg.io/docs/" target="_blank">CloudNativePG</a> · <a href="https://github.com/rakhmad/keycloak-sizing" target="_blank">rakhmad/keycloak-sizing</a> &nbsp;|&nbsp; Offline · no data sent
 </footer>
-
+</main>
+</div>
 <script>
 'use strict';
-/* ══════════════════════════════════════════════════════════════
-   UNIFIED STATE
-══════════════════════════════════════════════════════════════ */
-let currentMode = 'quick';
+let currentMode='quick';
+const Q={users:50000,apps:10,rps:100,tps:50};
+const A={lpct:15,gpct:30,rpct:55,pods:3,mode:'single',platform:'openshift',ispn:'embedded',pg:'cnpg',peak:2,sess:5,ttl:300,hash:'argon2',cpuHr:2.5};
+const D={logins:15,grants:120,refresh:120,users:50000,clients:2500,sessions:10000,pods:3,mode:'single',platform:'openshift',ispn:'embedded',pg:'cnpg',hash:'argon2'};
 
-// Quick inputs
-const Q = { users:50000, apps:10, rps:100, tps:50 };
-// Assumptions (Quick mode)
-const A = { lpct:15, gpct:30, rpct:55, pods:3, mode:'single', platform:'openshift', ispn:'embedded', pg:'cnpg', peak:2, sess:5, ttl:300, hash:'argon2', cpuHr:2.5 };
-// Detailed inputs
-const D = { logins:15, grants:120, refresh:120, users:50000, clients:2500, sessions:10000, pods:3, mode:'single', platform:'openshift', ispn:'embedded', pg:'cnpg', hash:'argon2' };
+['users','apps','rps','tps'].forEach(k=>{document.getElementById('q-'+k).addEventListener('input',e=>{Q[k]=+e.target.value||0;upd();});});
 
-/* ── Wire QUICK hero inputs ── */
-['users','apps','rps','tps'].forEach(k => {
-  const el = document.getElementById('q-' + k);
-  el.addEventListener('input', () => { Q[k] = +el.value || 0; upd(); });
-});
+function wsl(id,akey,fmt){const el=document.getElementById(id),lbl=document.getElementById('lbl-'+id.slice(2));if(!el)return;el.addEventListener('input',()=>{A[akey]=+el.value;if(lbl)lbl.textContent=fmt?fmt(+el.value):el.value;upd();});}
+wsl('a-lpct','lpct',v=>v+'%');wsl('a-gpct','gpct',v=>v+'%');wsl('a-rpct','rpct',v=>v+'%');
+wsl('a-peak','peak',v=>v+'×');wsl('a-sess','sess',v=>v+'%');wsl('a-ttl','ttl',v=>v+'s');wsl('a-cpuhr','cpuHr',v=>v+'×');
+document.getElementById('a-pods').addEventListener('input',e=>{A.pods=+e.target.value||1;upd();});
+['mode','platform','ispn','pg','hash'].forEach(k=>{const el=document.getElementById('a-'+k);if(!el)return;el.addEventListener('change',e=>{A[k]=e.target.value;if(k==='mode'&&e.target.value==='multi'){A.ispn='external';document.getElementById('a-ispn').value='external';}if(k==='mode'&&e.target.value!=='multi'){A.ispn='embedded';document.getElementById('a-ispn').value='embedded';}upd();});});
 
-/* ── Wire ASSUMPTIONS ── */
-function wsl(id, key, obj, fmt) {
-  const el = document.getElementById(id), lbl = document.getElementById('lbl-' + key.replace(/[A-Z]/g, m => '-' + m.toLowerCase()));
-  if (!el) return;
-  el.addEventListener('input', () => {
-    obj[key] = +el.value;
-    const lblEl = document.getElementById('lbl-' + id.slice(2));
-    if (lblEl) lblEl.textContent = fmt ? fmt(+el.value) : el.value;
-    upd();
-  });
-}
-wsl('a-lpct',  'lpct',  A, v => v + '%');
-wsl('a-gpct',  'gpct',  A, v => v + '%');
-wsl('a-rpct',  'rpct',  A, v => v + '%');
-wsl('a-peak',  'peak',  A, v => v + '×');
-wsl('a-sess',  'sess',  A, v => v + '%');
-wsl('a-ttl',   'ttl',   A, v => v + 's');
-wsl('a-cpuhr', 'cpuhr', A, v => v + '×');
-['mode','platform','ispn','pg','hash'].forEach(k => {
-  const el = document.getElementById('a-' + k);
-  if (el) el.addEventListener('change', e => {
-    A[k] = e.target.value;
-    if (k === 'mode' && e.target.value === 'multi') { A.ispn = 'external'; document.getElementById('a-ispn').value = 'external'; }
-    if (k === 'mode' && e.target.value !== 'multi') { A.ispn = 'embedded'; document.getElementById('a-ispn').value = 'embedded'; }
-    upd();
-  });
-});
-document.getElementById('a-pods').addEventListener('input', e => { A.pods = +e.target.value || 1; upd(); });
+function dlnk(rid,nid,key){const r=document.getElementById(rid),n=document.getElementById(nid);r.addEventListener('input',()=>{n.value=r.value;D[key]=+r.value;upd();});n.addEventListener('input',()=>{r.value=n.value;D[key]=+n.value||0;upd();});}
+dlnk('d-logins-r','d-logins','logins');dlnk('d-grants-r','d-grants','grants');dlnk('d-refresh-r','d-refresh','refresh');dlnk('d-pods-r','d-pods','pods');dlnk('d-users-r','d-users','users');dlnk('d-clients-r','d-clients','clients');dlnk('d-sessions-r','d-sessions','sessions');
+['platform','ispn','pg','hash'].forEach(k=>{const el=document.getElementById('d-'+k);if(el)el.addEventListener('change',e=>{D[k]=e.target.value;upd();});});
+document.querySelectorAll('input[name=d-mode]').forEach(r=>r.addEventListener('change',e=>{D.mode=e.target.value;document.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));e.target.closest('.radio-opt').classList.add('sel');if(D.mode==='multi'){D.ispn='external';document.getElementById('d-ispn').value='external';}else{D.ispn='embedded';document.getElementById('d-ispn').value='embedded';}upd();}));
 
-/* ── Wire DETAILED inputs ── */
-function dlnk(rid, nid, key) {
-  const r = document.getElementById(rid), n = document.getElementById(nid);
-  r.addEventListener('input', () => { n.value = r.value; D[key] = +r.value; upd(); });
-  n.addEventListener('input', () => { r.value = n.value; D[key] = +n.value || 0; upd(); });
-}
-dlnk('d-logins-r','d-logins','logins'); dlnk('d-grants-r','d-grants','grants');
-dlnk('d-refresh-r','d-refresh','refresh'); dlnk('d-pods-r','d-pods','pods');
-dlnk('d-users-r','d-users','users'); dlnk('d-clients-r','d-clients','clients');
-dlnk('d-sessions-r','d-sessions','sessions');
-['platform','ispn','pg','hash'].forEach(k => {
-  const el = document.getElementById('d-' + k);
-  if (el) el.addEventListener('change', e => { D[k] = e.target.value; upd(); });
-});
-document.querySelectorAll('input[name=d-mode]').forEach(r => r.addEventListener('change', e => {
-  D.mode = e.target.value;
-  document.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('sel'));
-  e.target.closest('.radio-opt').classList.add('sel');
-  if (D.mode === 'multi') { D.ispn = 'external'; document.getElementById('d-ispn').value = 'external'; }
-  else { D.ispn = 'embedded'; document.getElementById('d-ispn').value = 'embedded'; }
-  upd();
-}));
+function getW(){if(currentMode==='quick'){const peak=Q.tps*A.peak;return{logins:peak*(A.lpct/100),grants:peak*(A.gpct/100),refresh:peak*(A.rpct/100),sessions:Math.ceil(Q.users*A.sess/100),clients:Q.apps,users:Q.users,pods:A.pods,mode:A.mode,platform:A.platform,ispn:A.ispn,pg:A.pg,hash:A.hash,cpuHr:A.cpuHr,peakTPS:peak,ttl:A.ttl};}else{return{logins:D.logins,grants:D.grants,refresh:D.refresh,sessions:D.sessions,clients:D.clients,users:D.users,pods:D.pods,mode:D.mode,platform:D.platform,ispn:D.ispn,pg:D.pg,hash:D.hash,cpuHr:2.5,peakTPS:D.logins+D.grants+D.refresh,ttl:300};}}
 
-/* ══════════════════════════════════════════════════════════════
-   DERIVE WORKING VALUES
-══════════════════════════════════════════════════════════════ */
-function getW() {
-  if (currentMode === 'quick') {
-    const peak = Q.tps * A.peak;
-    return {
-      logins:   peak * (A.lpct / 100), grants: peak * (A.gpct / 100), refresh: peak * (A.rpct / 100),
-      sessions: Math.ceil(Q.users * A.sess / 100), clients: Q.apps, users: Q.users,
-      pods: A.pods, mode: A.mode, platform: A.platform, ispn: A.ispn, pg: A.pg,
-      hash: A.hash, cpuHr: A.cpuHr, peakTPS: peak, ttl: A.ttl
-    };
-  } else {
-    return {
-      logins: D.logins, grants: D.grants, refresh: D.refresh,
-      sessions: D.sessions, clients: D.clients, users: D.users,
-      pods: D.pods, mode: D.mode, platform: D.platform, ispn: D.ispn, pg: D.pg,
-      hash: D.hash, cpuHr: 2.5, peakTPS: D.logins + D.grants + D.refresh, ttl: 300
-    };
-  }
+function calcKC(w){const pods=Math.max(1,w.pods),cpuL=w.logins/15,cpuG=w.grants/120,cpuR=w.refresh/120,clCPU=cpuL+cpuG+cpuR,cpuReq=Math.max(0.1,clCPU/pods),cpuLim=cpuReq*w.cpuHr,extMem=Math.max(0,w.sessions-10000)/10000*120,expMem=1250+extMem,memLim=Math.max(1360,(expMem-300)/0.7),heap=Math.max(700,memLim*0.7),pool=30,maxConn=pool*pods+20,threads=Math.max(50,Math.round(cpuLim*2*10));return{cpuL,cpuG,cpuR,clCPU,cpuReq,cpuLim,expMem,memLim,heap,pool,maxConn,threads,pods,totMem:(expMem*pods)/1024};}
+function calcDG(w,kc){const pods=Math.max(3,kc.pods),ops=w.logins+w.refresh,cpuReq=Math.max(0.5,0.5+ops/600),cpuLim=Math.max(1,cpuReq*2),concSess=Math.ceil(ops*w.ttl),sessData=(concSess*8)/1024,memReq=Math.max(512,512+sessData*2/pods+150),memLim=Math.max(750,(memReq-150)/0.65),heap=Math.max(350,memLim*0.60);return{dgPods:pods,cpuReq,cpuLim,memReq:Math.ceil(memReq),memLim:Math.ceil(memLim),heap:Math.ceil(heap),concSess,totMem:(memReq*pods)/1024};}
+function calcPG(w,kc){const ops=w.logins*2+w.refresh,iops=Math.ceil((ops/100)*1400),dbLo=(ops/100)*0.35,dbHi=(ops/100)*0.70;let vcpu=2,ram=8;if(dbHi>32){vcpu=64;ram=256;}else if(dbHi>16){vcpu=32;ram=128;}else if(dbHi>8){vcpu=16;ram=64;}else if(dbHi>4){vcpu=8;ram=32;}else if(dbHi>2){vcpu=4;ram=16;}else if(dbHi>1){vcpu=2;ram=8;}else{vcpu=1;ram=4;}const uGB=Math.ceil(w.users*10/1024/1024),sGB=Math.ceil(w.sessions*5/1024/1024),stor=Math.max(20,20+uGB+sGB+15),maxConn=kc.pool*kc.pods+20,ramMB=ram*1024,sb=Math.round(ramMB*0.25),ec=Math.round(ramMB*0.70),wm=Math.max(4,Math.round(sb/maxConn)),mwm=Math.min(1024,Math.round(ramMB*0.05));let inst='db.t4g.small';if(dbHi>32)inst='db.r6g.8xlarge';else if(dbHi>16)inst='db.r6g.4xlarge';else if(dbHi>8)inst='db.r6g.2xlarge';else if(dbHi>4)inst='db.r6g.xlarge';else if(dbHi>2)inst='db.t4g.xlarge';else if(dbHi>1)inst='db.t4g.large';return{iops,dbLo,dbHi,vcpu,ram,stor,maxConn,sb,ec,wm,mwm,inst};}
+
+const f2=v=>(+v.toFixed(2)).toString(),f1=v=>(+v.toFixed(1)).toString(),fi=v=>Math.ceil(v).toLocaleString(),fm=v=>Math.ceil(v).toString();
+function el(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function mkAlert(type,msg){const icons={danger:'⛔',warning:'⚠',info:'ℹ'};return`<div class="pf-v6-c-alert pf-m-${type} pf-m-inline" style="margin-bottom:10px"><div class="pf-v6-c-alert__icon">${icons[type]||'ℹ'}</div><p class="pf-v6-c-alert__title">${msg}</p></div>`;}
+
+function upd(){
+  const w=getW(),kc=calcKC(w),dg=calcDG(w,kc),pg=calcPG(w,kc);
+  if(currentMode==='quick'){const tot=A.lpct+A.gpct+A.rpct;document.getElementById('seg-l').style.width=(A.lpct/tot*100)+'%';document.getElementById('seg-g').style.width=(A.gpct/tot*100)+'%';document.getElementById('seg-r').style.width=(A.rpct/tot*100)+'%';document.getElementById('pct-warn').textContent=tot!==100?`⚠ Distribution = ${tot}% (should be 100%)`:'';} 
+  el('ds-peak',f1(w.peakTPS)+'/s');el('ds-logins',f1(w.logins)+'/s');el('ds-grants',f1(w.grants)+'/s');el('ds-refresh',f1(w.refresh)+'/s');el('ds-sessions',fi(w.sessions));el('ds-clients',fi(w.clients));el('ds-dbops',f1(w.logins*2+w.refresh)+'/s');el('ds-mode',w.mode==='single'?'Single':w.mode==='ha'?'HA':'Multi-cluster');
+  el('o-cpu-req',f2(kc.cpuReq));el('o-cpu-lim',f2(kc.cpuLim));el('o-mem-req',fm(kc.expMem));el('o-mem-lim',fm(kc.memLim));el('o-heap',fm(kc.heap));el('o-pool',kc.pool);el('o-threads',kc.threads);el('o-tot-cpu',f2(kc.clCPU));el('o-tot-mem',kc.totMem.toFixed(1));
+  el('dg-sub',w.ispn==='external'?'External — required for multi-cluster':'Embedded — built into KC pods');
+  el('o-dg-pods',dg.dgPods);el('o-dg-cpu-req',f2(dg.cpuReq));el('o-dg-cpu-lim',f2(dg.cpuLim));el('o-dg-mem-req',fm(dg.memReq));el('o-dg-mem-lim',fm(dg.memLim));el('o-dg-heap',fm(dg.heap));el('o-dg-sess',fi(dg.concSess));el('o-dg-tot',dg.totMem.toFixed(1));
+  el('o-iops',pg.iops>0?fi(pg.iops):'< 28');el('o-db-cpu',pg.iops>0?`${f2(pg.dbLo)}–${f2(pg.dbHi)}`:'< 0.1');el('o-pg-ram',pg.ram);el('o-pg-stor',pg.stor);el('o-pg-conn',pg.maxConn);el('o-pg-sb',pg.sb);el('o-pg-ec',pg.ec);el('o-pg-wm',pg.wm);el('o-db-inst',pg.inst);
+  const msgs=[];
+  if(currentMode==='quick'&&Q.rps<Q.tps&&Q.rps>0)msgs.push(mkAlert('warning',`<strong>Check inputs:</strong> RPS (${Q.rps}) < TPS (${Q.tps}). Every auth transaction is an HTTP request, so RPS ≥ TPS. Consider swapping.`));
+  if(kc.cpuReq<0.5&&kc.clCPU>0.3)msgs.push(mkAlert('warning',`<strong>⚠ Throttle risk:</strong> ${f2(kc.cpuReq)} vCPU/pod is very low. KC performance degrades when throttled.`));
+  if(w.mode==='multi'&&w.ispn!=='external')msgs.push(mkAlert('danger',`<strong>Config mismatch:</strong> Multi-cluster active/active requires external Infinispan / Data Grid.`));
+  if(w.clients>2500)msgs.push(mkAlert('warning',`<strong>⚠ Cache overflow (${fi(w.clients)} clients > 2,500):</strong> Increase <code>users</code> cache to ${fi(w.clients*2)} and <code>realms</code> to ${fi(w.clients*4)} entries.`));
+  document.getElementById('notices').innerHTML=msgs.join('');
+  document.getElementById('cache-notice').innerHTML='';
+  document.getElementById('dg-notice').innerHTML=w.ispn==='embedded'?mkAlert('info',`<strong>Embedded mode:</strong> No separate Data Grid deployment needed. DG sizes shown are reference for future migration.`):'';
+  updateSummary(w,kc,dg,pg);buildYAML(w,kc,dg,pg);buildNotes(w,kc,dg,pg);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   CALCULATIONS
-══════════════════════════════════════════════════════════════ */
-function calcKC(w) {
-  const pods = Math.max(1, w.pods);
-  const cpuL = w.logins/15, cpuG = w.grants/120, cpuR = w.refresh/120, clCPU = cpuL+cpuG+cpuR;
-  const cpuReq = Math.max(0.1, clCPU/pods), cpuLim = cpuReq * w.cpuHr;
-  const extMem = Math.max(0, w.sessions - 10000) / 10000 * 120, expMem = 1250 + extMem;
-  const memLim = Math.max(1360, (expMem - 300) / 0.7), heap = Math.max(700, memLim * 0.7);
-  const pool = 30, maxConn = pool * pods + 20, threads = Math.max(50, Math.round(cpuLim*2*10));
-  return { cpuL, cpuG, cpuR, clCPU, cpuReq, cpuLim, expMem, memLim, heap, pool, maxConn, threads, pods, totMem: (expMem*pods)/1024 };
-}
-function calcDG(w, kc) {
-  const pods = Math.max(3, kc.pods), ops = w.logins + w.refresh;
-  const cpuReq = Math.max(0.5, 0.5 + ops/600), cpuLim = Math.max(1, cpuReq*2);
-  const concSess = Math.ceil(ops * w.ttl), sessData = (concSess * 8) / 1024;
-  const memReq = Math.max(512, 512 + sessData*2/pods + 150);
-  const memLim = Math.max(750, (memReq-150)/0.65), heap = Math.max(350, memLim*0.60);
-  return { dgPods: pods, cpuReq, cpuLim, memReq: Math.ceil(memReq), memLim: Math.ceil(memLim), heap: Math.ceil(heap), concSess, totMem: (memReq*pods)/1024 };
-}
-function calcPG(w, kc) {
-  const ops = w.logins*2 + w.refresh, iops = Math.ceil((ops/100)*1400);
-  const dbLo = (ops/100)*0.35, dbHi = (ops/100)*0.70;
-  let vcpu=2, ram=8;
-  if(dbHi>32){vcpu=64;ram=256;}else if(dbHi>16){vcpu=32;ram=128;}else if(dbHi>8){vcpu=16;ram=64;}
-  else if(dbHi>4){vcpu=8;ram=32;}else if(dbHi>2){vcpu=4;ram=16;}else if(dbHi>1){vcpu=2;ram=8;}else{vcpu=1;ram=4;}
-  const uGB = Math.ceil(w.users*10/1024/1024), sGB = Math.ceil(w.sessions*5/1024/1024);
-  const stor = Math.max(20, 20+uGB+sGB+15), maxConn = kc.pool*kc.pods+20, ramMB = ram*1024;
-  const sb = Math.round(ramMB*0.25), ec = Math.round(ramMB*0.70);
-  const wm = Math.max(4, Math.round(sb/maxConn)), mwm = Math.min(1024, Math.round(ramMB*0.05));
-  let inst='db.t4g.small';
-  if(dbHi>32)inst='db.r6g.8xlarge';else if(dbHi>16)inst='db.r6g.4xlarge';else if(dbHi>8)inst='db.r6g.2xlarge';
-  else if(dbHi>4)inst='db.r6g.xlarge';else if(dbHi>2)inst='db.t4g.xlarge';else if(dbHi>1)inst='db.t4g.large';
-  return { iops, dbLo, dbHi, vcpu, ram, stor, maxConn, sb, ec, wm, mwm, inst };
+const platformLabels={openshift:'Red Hat OpenShift',rhbk:'Red Hat Build of Keycloak',k8s:'Kubernetes',eks:'Amazon EKS',aks:'Azure AKS',gke:'Google GKE'};
+const modeLabels={single:'Single cluster',ha:'HA · Single cluster',multi:'HA · Active/Active'};
+
+function updateSummary(w,kc,dg,pg){
+  const today=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  el('s-date',today);el('s-mode-badge',currentMode==='quick'?'Quick Estimate':'Detailed Mode');
+  el('s-platform-lbl',platformLabels[w.platform]||w.platform);
+  el('s-users',fi(w.users));el('s-apps',fi(w.clients));el('s-peak-tps',f1(w.peakTPS)+'/s');el('s-deploy-mode',modeLabels[w.mode]||w.mode);el('s-ispn-mode-sub',w.ispn==='external'?'+ External Data Grid':'Embedded Infinispan');
+  el('s-kc-pods-sub',`${kc.pods} pod${kc.pods>1?'s':''} · ${platformLabels[w.platform]||w.platform}`);
+  el('s-kc-cpu-req',f2(kc.cpuReq)+' vCPU');el('s-kc-cpu-lim',f2(kc.cpuLim)+' vCPU limit');el('s-kc-mem-req',fm(kc.expMem)+' MiB');el('s-kc-mem-lim',fm(kc.memLim)+' MiB limit');el('s-kc-heap',fm(kc.heap)+' MiB');el('s-kc-pool',kc.pool+' conns/pod');el('s-kc-threads',kc.threads+' max');
+  el('s-dg-mode-sub',w.ispn==='external'?'External — multi-cluster':'Embedded — no external deployment');
+  if(w.ispn==='external'){el('s-dg-pods',dg.dgPods+' pods / site');el('s-dg-cpu-req',f2(dg.cpuReq)+' vCPU');el('s-dg-cpu-lim',f2(dg.cpuLim)+' vCPU limit');el('s-dg-mem-req',fm(dg.memReq)+' MiB');el('s-dg-mem-lim',fm(dg.memLim)+' MiB limit');el('s-dg-heap',fm(dg.heap)+' MiB');el('s-dg-sess',fi(dg.concSess));}
+  else{document.getElementById('s-dg-body').innerHTML=`<div style="color:#6A6E73;font-size:12px;line-height:1.7;margin-top:4px">Embedded Infinispan runs inside each Keycloak pod.<br>No separate deployment needed for <strong>${modeLabels[w.mode]||w.mode}</strong>.<br><br>Resources included in KC pod sizing.</div>`;}
+  el('s-pg-vcpu',pg.vcpu+' vCPU');el('s-pg-ram',pg.ram+' GiB');el('s-pg-stor',pg.stor+' GiB (SSD)');el('s-pg-iops',pg.iops>0?fi(pg.iops):'< 28');el('s-pg-conn',pg.maxConn+' total');el('s-pg-sb',pg.sb+' MB');el('s-pg-ec',pg.ec+' MB');el('s-pg-wm',pg.wm+' MB');el('s-pg-inst',pg.inst+' (Aurora)');
+  el('s-asm-footer',currentMode==='quick'?`Assumptions: ${A.peak}× peak · Logins ${A.lpct}% · Grants ${A.gpct}% · Refresh ${A.rpct}% · Sessions ${A.sess}% of users · TTL ${A.ttl}s`:`Direct inputs — ${f1(w.logins)} logins/s · ${f1(w.grants)} grants/s · ${f1(w.refresh)} refresh/s at peak`);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   HELPERS
-══════════════════════════════════════════════════════════════ */
-const f2 = v => (+v.toFixed(2)).toString();
-const f1 = v => (+v.toFixed(1)).toString();
-const fi = v => Math.ceil(v).toLocaleString();
-const fm = v => Math.ceil(v).toString();
-function el(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
-
-/* ══════════════════════════════════════════════════════════════
-   RENDER
-══════════════════════════════════════════════════════════════ */
-function upd() {
-  const w = getW(), kc = calcKC(w), dg = calcDG(w, kc), pg = calcPG(w, kc);
-
-  // Pct bar (quick mode)
-  if (currentMode === 'quick') {
-    const tot = A.lpct + A.gpct + A.rpct;
-    document.getElementById('seg-l').style.width = (A.lpct/tot*100) + '%';
-    document.getElementById('seg-g').style.width = (A.gpct/tot*100) + '%';
-    document.getElementById('seg-r').style.width = (A.rpct/tot*100) + '%';
-    document.getElementById('pct-warn').textContent = tot !== 100 ? `⚠ Distribution = ${tot}% (must be 100%)` : '';
-  }
-
-  // Derived strip
-  el('ds-peak',    f1(w.peakTPS) + '/s');
-  el('ds-logins',  f1(w.logins) + '/s');
-  el('ds-grants',  f1(w.grants) + '/s');
-  el('ds-refresh', f1(w.refresh) + '/s');
-  el('ds-sessions',fi(w.sessions));
-  el('ds-clients', fi(w.clients));
-  el('ds-dbops',   f1(w.logins*2+w.refresh) + '/s');
-  el('ds-mode',    w.mode === 'single' ? 'Single' : w.mode === 'ha' ? 'HA' : 'Multi-cluster');
-
-  // KC metrics
-  el('o-cpu-req', f2(kc.cpuReq)); el('o-cpu-lim', f2(kc.cpuLim));
-  el('o-mem-req', fm(kc.expMem)); el('o-mem-lim', fm(kc.memLim));
-  el('o-heap',    fm(kc.heap));   el('o-pool', kc.pool);
-  el('o-threads', kc.threads);    el('o-tot-cpu', f2(kc.clCPU));
-  el('o-tot-mem', kc.totMem.toFixed(1));
-
-  // DG metrics
-  el('dg-sub', w.ispn==='external' ? 'External — required for multi-cluster' : 'Embedded — built into KC pods (no external deployment for single/HA)');
-  el('o-dg-pods',    dg.dgPods);    el('o-dg-cpu-req', f2(dg.cpuReq));
-  el('o-dg-cpu-lim', f2(dg.cpuLim)); el('o-dg-mem-req', fm(dg.memReq));
-  el('o-dg-mem-lim', fm(dg.memLim)); el('o-dg-heap',    fm(dg.heap));
-  el('o-dg-sess', fi(dg.concSess));  el('o-dg-tot',     dg.totMem.toFixed(1));
-
-  // PG metrics
-  el('o-iops',    pg.iops>0 ? fi(pg.iops) : '< 28');
-  el('o-db-cpu',  pg.iops>0 ? `${f2(pg.dbLo)}–${f2(pg.dbHi)}` : '< 0.1');
-  el('o-pg-ram',  pg.ram); el('o-pg-stor', pg.stor);
-  el('o-pg-conn', pg.maxConn); el('o-pg-sb', pg.sb);
-  el('o-pg-ec', pg.ec); el('o-pg-wm', pg.wm); el('o-db-inst', pg.inst);
-
-  // Notices
-  const msgs = [];
-  if (currentMode === 'quick' && Q.rps < Q.tps && Q.rps > 0)
-    msgs.push(`<div class="notice ne"><strong>Check inputs:</strong> RPS (${Q.rps}) < TPS (${Q.tps}) — every auth transaction is an HTTP request, so RPS ≥ TPS. Consider swapping.</div>`);
-  if (kc.cpuReq < 0.5 && kc.clCPU > 0.3)
-    msgs.push(`<div class="notice nw"><strong>⚠ Throttle risk:</strong> ${f2(kc.cpuReq)} vCPU/pod is very low. Keycloak performance degrades when throttled. Try fewer pods with more CPU.</div>`);
-  if (w.mode === 'multi' && w.ispn !== 'external')
-    msgs.push(`<div class="notice ne"><strong>Config mismatch:</strong> Multi-cluster active/active requires external Infinispan / Data Grid.</div>`);
-  if (w.clients > 2500)
-    msgs.push(`<div class="notice nw"><strong>⚠ Cache overflow (${fi(w.clients)} clients > 2,500):</strong> Increase <code>users</code> cache to ${fi(w.clients*2)} and <code>realms</code> to ${fi(w.clients*4)} entries.</div>`);
-  document.getElementById('notices').innerHTML = msgs.join('');
-  document.getElementById('cache-notice').innerHTML = '';
-  document.getElementById('dg-notice').innerHTML = w.ispn === 'embedded'
-    ? `<div class="notice nt"><strong>Embedded mode:</strong> No separate Data Grid deployment needed for ${w.mode} configuration. DG sizes shown are reference for future migration.</div>`
-    : '';
-
-  // Summary card
-  updateSummary(w, kc, dg, pg);
-  buildYAML(w, kc, dg, pg);
-  buildNotes(w, kc, dg, pg);
+function buildYAML(w,kc,dg,pg){
+  const ns='keycloak',p=kc.pods,img='quay.io/keycloak/keycloak:26.5.5',cR=f2(kc.cpuReq),cL=f2(kc.cpuLim),mR=`${fm(kc.expMem)}Mi`,mL=`${fm(kc.memLim)}Mi`;
+  const hdr=currentMode==='quick'?`# Quick: ${fi(w.users)} users · ${fi(w.clients)} apps · ${fi(Q.tps)} avg TPS · ${A.peak}× peak`:`# Detailed: ${f1(w.logins)} logins/s · ${f1(w.grants)} grants/s · ${f1(w.refresh)} refresh/s`;
+  document.getElementById('b-k8s').textContent=`# Red Hat Build of Keycloak v26.x — Kubernetes\n# ${hdr.slice(2)}\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: keycloak\n  namespace: ${ns}\nspec:\n  replicas: ${p}\n  selector:\n    matchLabels: {app: keycloak}\n  strategy:\n    type: RollingUpdate\n    rollingUpdate: {maxUnavailable: 1, maxSurge: 1}\n  template:\n    metadata:\n      labels: {app: keycloak}\n    spec:\n      affinity:\n        podAntiAffinity:\n          preferredDuringSchedulingIgnoredDuringExecution:\n            - weight: 100\n              podAffinityTerm:\n                labelSelector:\n                  matchLabels: {app: keycloak}\n                topologyKey: kubernetes.io/hostname\n      containers:\n        - name: keycloak\n          image: ${img}\n          args:\n            - start\n            - --cache=ispn\n            - --cache-stack=kubernetes\n            - --http-pool-max-threads=${kc.threads}\n            - --db-pool-initial-size=${kc.pool}\n            - --db-pool-min-size=${kc.pool}\n            - --db-pool-max-size=${kc.pool}\n          env:\n            - {name: KC_DB, value: postgres}\n            - {name: KC_DB_URL, value: "jdbc:postgresql://<DB_HOST>:5432/keycloak"}\n            - name: KC_DB_USERNAME\n              valueFrom:\n                secretKeyRef: {name: keycloak-db-secret, key: username}\n            - name: KC_DB_PASSWORD\n              valueFrom:\n                secretKeyRef: {name: keycloak-db-secret, key: password}\n            - {name: KC_HOSTNAME, value: "https://<YOUR_HOSTNAME>"}\n            - {name: KC_HTTP_ENABLED, value: "true"}\n            - {name: KC_PROXY_HEADERS, value: xforwarded}\n            - name: JAVA_OPTS_KC_HEAP\n              value: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=50"\n            - name: JAVA_OPTS_APPEND\n              value: >-\n                -XX:+UseG1GC -XX:MaxGCPauseMillis=200\n                -XX:+ParallelRefProcEnabled -XX:+DisableExplicitGC\n                -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20\n                -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m\n                -Djgroups.dns.query=keycloak-headless.${ns}.svc.cluster.local\n          ports:\n            - {name: http, containerPort: 8080}\n            - {name: management, containerPort: 9000}\n            - {name: jgroups, containerPort: 7800}\n          resources:\n            requests: {cpu: "${cR}", memory: "${mR}"}\n            limits:   {cpu: "${cL}", memory: "${mL}"}\n          readinessProbe:\n            httpGet: {path: /health/ready, port: 9000}\n            initialDelaySeconds: 30\n            periodSeconds: 10\n            failureThreshold: 3\n          livenessProbe:\n            httpGet: {path: /health/live, port: 9000}\n            initialDelaySeconds: 60\n            periodSeconds: 30\n          startupProbe:\n            httpGet: {path: /health/started, port: 9000}\n            failureThreshold: 30\n            periodSeconds: 10\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: keycloak-headless\n  namespace: ${ns}\nspec:\n  clusterIP: None\n  selector: {app: keycloak}\n  ports: [{name: jgroups, port: 7800}]`;
+  document.getElementById('b-op').textContent=`apiVersion: k8s.keycloak.org/v2alpha1\nkind: Keycloak\nmetadata:\n  name: keycloak\n  namespace: ${ns}\nspec:\n  instances: ${p}\n  image: ${img}\n  db:\n    vendor: postgres\n    host: <DB_HOST>\n    database: keycloak\n    usernameSecret: {name: keycloak-db-secret, key: username}\n    passwordSecret: {name: keycloak-db-secret, key: password}\n    poolInitialSize: ${kc.pool}\n    poolMinSize:     ${kc.pool}\n    poolMaxSize:     ${kc.pool}\n  hostname:\n    hostname: <YOUR_HOSTNAME>\n  http:\n    httpEnabled: true\n  resources:\n    requests: {cpu: "${cR}", memory: "${mR}"}\n    limits:   {cpu: "${cL}", memory: "${mL}"}\n  additionalOptions:\n    - {name: cache,                 value: ispn}\n    - {name: cache-stack,           value: kubernetes}\n    - {name: http-pool-max-threads, value: "${kc.threads}"}`;
+  const dc=f2(dg.cpuReq),dl=f2(dg.cpuLim),dm=`${fm(dg.memReq)}Mi`,dml=`${fm(dg.memLim)}Mi`;
+  document.getElementById('b-ispn').textContent=`# External Infinispan — only for multi-cluster (cross-site) active/active\napiVersion: infinispan.org/v1\nkind: Infinispan\nmetadata:\n  name: infinispan\n  namespace: ${ns}\nspec:\n  replicas: ${dg.dgPods}\n  container:\n    cpu: "${dc}:${dl}"\n    memory: "${dm}:${dml}"\n    extraJvmOpts: >-\n      -XX:+UseG1GC -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=40\n      -XX:MaxGCPauseMillis=300 -XX:+DisableExplicitGC\n  security:\n    endpointSecretName: infinispan-credentials\n    endpointEncryption:\n      type: Service\n      certServiceName: service.beta.openshift.io\n  service:\n    type: DataGrid\n    sites:\n      local: {name: site-a, expose: {type: ClusterIP}}\n      locations:\n        - {name: site-b, url: "openshift://api.<SITE_B>:6443", secretName: site-b-secret}\n---\napiVersion: v1\nkind: Secret\nmetadata: {name: infinispan-credentials, namespace: ${ns}}\nstringData:\n  identities.yaml: |\n    credentials:\n      - username: developer\n        password: <CHANGE_ME>\n---\napiVersion: infinispan.org/v2alpha1\nkind: Cache\nmetadata: {name: authenticationSessions, namespace: ${ns}}\nspec:\n  clusterName: infinispan\n  name: authenticationSessions\n  template: |\n    <distributed-cache name="authenticationSessions" owners="2" statistics="false">\n      <encoding media-type="application/x-protostream"/>\n      <memory max-count="10000"/>\n      <backups>\n        <backup site="site-b" strategy="SYNC" failure-policy="FAIL">\n          <take-offline min-wait="120000"/>\n        </backup>\n      </backups>\n    </distributed-cache>`;
+  document.getElementById('b-pg').textContent=`# CloudNativePG — ${pg.vcpu} vCPU · ${pg.ram} GiB RAM · ${pg.stor} GiB (${pg.inst})\napiVersion: postgresql.cnpg.io/v1\nkind: Cluster\nmetadata: {name: keycloak-db, namespace: keycloak-db}\nspec:\n  instances: 3\n  imageName: ghcr.io/cloudnative-pg/postgresql:16.4\n  storage:\n    storageClass: fast-ssd\n    size: ${pg.stor}Gi\n  resources:\n    requests: {cpu: "${Math.max(1,Math.floor(pg.vcpu*0.5))}", memory: "${Math.round(pg.ram*0.75)}Gi"}\n    limits:   {cpu: "${pg.vcpu}", memory: "${pg.ram}Gi"}\n  primaryUpdateStrategy: unsupervised\n  minSyncReplicas: 1\n  maxSyncReplicas: 1\n  affinity:\n    podAntiAffinityType: required\n    topologyKey: topology.kubernetes.io/zone\n  postgresql:\n    parameters:\n      max_connections:          "${pg.maxConn}"\n      shared_buffers:           "${pg.sb}MB"\n      effective_cache_size:     "${pg.ec}MB"\n      work_mem:                 "${pg.wm}MB"\n      maintenance_work_mem:     "${pg.mwm}MB"\n      wal_buffers:              "16MB"\n      min_wal_size:             "1GB"\n      max_wal_size:             "4GB"\n      checkpoint_completion_target: "0.9"\n      effective_io_concurrency: "200"\n      random_page_cost:         "1.1"\n      tcp_keepalives_idle:      "60"\n  bootstrap:\n    initdb:\n      database: keycloak\n      owner: keycloak\n      secret: {name: keycloak-db-credentials}\n      encoding: UTF8\n      localeCType: C\n  backup:\n    retentionPolicy: "30d"\n    barmanObjectStore:\n      destinationPath: "s3://<BUCKET>/keycloak-db"\n      s3Credentials:\n        accessKeyId:    {name: backup-s3, key: ACCESS_KEY_ID}\n        secretAccessKey:{name: backup-s3, key: ACCESS_KEY_SECRET}\n      wal: {compression: gzip}\n  monitoring:\n    enablePodMonitor: true\n---\napiVersion: v1\nkind: Secret\nmetadata: {name: keycloak-db-credentials, namespace: keycloak-db}\nstringData: {username: keycloak, password: <CHANGE_ME>}`;
+  document.getElementById('b-jvm').textContent=`# KC: ${fm(kc.memLim)} MiB limit · heap ${fm(kc.heap)} MiB · pool ${kc.pool}/pod · ${kc.threads} HTTP threads\n\n# Container-aware (recommended):\nJAVA_OPTS_KC_HEAP="-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=50"\n\n# Fixed heap:\nJAVA_OPTS_KC_HEAP="-Xms${fm(kc.heap*0.7)}m -Xmx${fm(kc.heap)}m"\n\n# GC tuning:\nJAVA_OPTS_APPEND="\\\n  -XX:+UseG1GC -XX:MaxGCPauseMillis=200 \\\n  -XX:+ParallelRefProcEnabled -XX:+DisableExplicitGC \\\n  -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20 \\\n  -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m \\\n  -XX:+UseContainerSupport -Dsun.zip.disableMemoryMapping=true"\n\n# K8s resource block:\n# requests: {cpu: "${cR}", memory: "${fm(kc.expMem)}Mi"}\n# limits:   {cpu: "${cL}", memory: "${mL}"}\n\n# Data Grid JVM: ${fm(dg.memLim)} MiB limit · heap ${fm(dg.heap)} MiB (60%)\nDG_JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=40 \\\n  -XX:MaxGCPauseMillis=300 -XX:+DisableExplicitGC \\\n  -XX:MetaspaceSize=64m -XX:MaxMetaspaceSize=128m"`;
+  const maxR=Math.max(p*2,p+3);
+  document.getElementById('b-hpa').textContent=`apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata: {name: keycloak-hpa, namespace: ${ns}}\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: keycloak\n  minReplicas: ${p}\n  maxReplicas: ${maxR}\n  metrics:\n    - type: Resource\n      resource:\n        name: cpu\n        target:\n          type: Utilization\n          averageUtilization: 60\n    - type: Resource\n      resource:\n        name: memory\n        target:\n          type: AverageValue\n          averageValue: ${fm(kc.expMem*0.85)}Mi\n  behavior:\n    scaleUp:   {stabilizationWindowSeconds: 30,  policies: [{type: Pods, value: 1, periodSeconds: 60}]}\n    scaleDown: {stabilizationWindowSeconds: 300, policies: [{type: Pods, value: 1, periodSeconds: 120}]}\n---\napiVersion: policy/v1\nkind: PodDisruptionBudget\nmetadata: {name: keycloak-pdb, namespace: ${ns}}\nspec:\n  minAvailable: ${Math.max(1,p-1)}\n  selector:\n    matchLabels: {app: keycloak}`;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   SUMMARY CARD
-══════════════════════════════════════════════════════════════ */
-const platformLabels = { openshift:'Red Hat OpenShift', rhbk:'Red Hat Build of Keycloak', k8s:'Kubernetes', eks:'Amazon EKS', aks:'Azure AKS', gke:'Google GKE' };
-const modeLabels     = { single:'Single cluster', ha:'HA · Single cluster', multi:'HA · Active/Active' };
-
-function updateSummary(w, kc, dg, pg) {
-  const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-  el('s-date', today);
-  el('s-mode-badge', currentMode === 'quick' ? 'Quick Estimate' : 'Detailed Mode');
-  el('s-platform-lbl', platformLabels[w.platform] || w.platform);
-  el('s-users',        fi(w.users));
-  el('s-apps',         fi(w.clients));
-  el('s-peak-tps',     f1(w.peakTPS) + '/s');
-  el('s-deploy-mode',  modeLabels[w.mode] || w.mode);
-  el('s-ispn-mode-sub', w.ispn === 'external' ? '+ External Data Grid' : 'Embedded Infinispan');
-  // KC
-  el('s-kc-pods-sub',  `${kc.pods} pod${kc.pods>1?'s':''} · ${platformLabels[w.platform]||w.platform}`);
-  el('s-kc-cpu-req',   f2(kc.cpuReq) + ' vCPU');
-  el('s-kc-cpu-lim',   f2(kc.cpuLim) + ' vCPU limit');
-  el('s-kc-mem-req',   fm(kc.expMem) + ' MiB');
-  el('s-kc-mem-lim',   fm(kc.memLim) + ' MiB limit');
-  el('s-kc-heap',      fm(kc.heap) + ' MiB');
-  el('s-kc-pool',      kc.pool + ' conns/pod');
-  el('s-kc-threads',   kc.threads + ' max');
-  // DG
-  el('s-dg-mode-sub', w.ispn === 'external' ? 'External — required for multi-cluster' : 'Embedded — no external deployment');
-  if (w.ispn === 'external') {
-    el('s-dg-pods',    dg.dgPods + ' pods / site');
-    el('s-dg-cpu-req', f2(dg.cpuReq) + ' vCPU');
-    el('s-dg-cpu-lim', f2(dg.cpuLim) + ' vCPU limit');
-    el('s-dg-mem-req', fm(dg.memReq) + ' MiB');
-    el('s-dg-mem-lim', fm(dg.memLim) + ' MiB limit');
-    el('s-dg-heap',    fm(dg.heap) + ' MiB');
-    el('s-dg-sess',    fi(dg.concSess));
-    document.getElementById('s-dg-body').style.display = '';
-  } else {
-    document.getElementById('s-dg-body').innerHTML = `
-      <div style="color:#6A6E73;font-size:12px;line-height:1.6;margin-top:4px">
-        Embedded Infinispan runs inside each Keycloak pod.<br>
-        No separate deployment needed for <strong>${modeLabels[w.mode]}</strong>.<br><br>
-        Resources already included in KC pod sizing.
-      </div>`;
-  }
-  // PG
-  el('s-pg-vcpu', pg.vcpu + ' vCPU');
-  el('s-pg-ram',  pg.ram + ' GiB');
-  el('s-pg-stor', pg.stor + ' GiB (SSD)');
-  el('s-pg-iops', pg.iops > 0 ? fi(pg.iops) : '< 28');
-  el('s-pg-conn', pg.maxConn + ' total');
-  el('s-pg-sb',   pg.sb + ' MB');
-  el('s-pg-ec',   pg.ec + ' MB');
-  el('s-pg-wm',   pg.wm + ' MB');
-  el('s-pg-inst', pg.inst + ' (Aurora)');
-  // Footer assumptions
-  if (currentMode === 'quick') {
-    el('s-asm-footer', `Assumptions: ${A.peak}× peak · Logins ${A.lpct}% · Grants ${A.gpct}% · Refresh ${A.rpct}% · Sessions ${A.sess}% of users · TTL ${A.ttl}s`);
-  } else {
-    el('s-asm-footer', `Direct inputs — ${f1(w.logins)} logins/s · ${f1(w.grants)} grants/s · ${f1(w.refresh)} refresh/s at peak`);
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════
-   YAML GENERATORS
-══════════════════════════════════════════════════════════════ */
-function buildYAML(w, kc, dg, pg) {
-  const ns='keycloak', p=kc.pods, img='quay.io/keycloak/keycloak:26.5.5';
-  const cR=f2(kc.cpuReq), cL=f2(kc.cpuLim), mR=`${fm(kc.expMem)}Mi`, mL=`${fm(kc.memLim)}Mi`;
-  const qLine = currentMode==='quick'
-    ? `# Quick mode: ${fi(w.users)} users · ${fi(w.clients)} apps · ${fi(Q.rps)} avg RPS · ${fi(Q.tps)} avg TPS · ${A.peak}× peak`
-    : `# Detailed mode: ${f1(w.logins)} logins/s · ${f1(w.grants)} grants/s · ${f1(w.refresh)} refresh/s (peak)`;
-
-  document.getElementById('b-k8s').textContent =
-`# ─────────────────────────────────────────────────
-# Red Hat Build of Keycloak v26.x — Kubernetes
-# ${qLine.slice(2)}
-# ─────────────────────────────────────────────────
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: keycloak
-  namespace: ${ns}
-spec:
-  replicas: ${p}
-  selector:
-    matchLabels:
-      app: keycloak
-  strategy:
-    type: RollingUpdate
-    rollingUpdate: {maxUnavailable: 1, maxSurge: 1}
-  template:
-    metadata:
-      labels:
-        app: keycloak
-    spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector:
-                  matchLabels: {app: keycloak}
-                topologyKey: kubernetes.io/hostname
-      containers:
-        - name: keycloak
-          image: ${img}
-          args:
-            - start
-            - --cache=ispn
-            - --cache-stack=kubernetes
-            - --http-pool-max-threads=${kc.threads}
-            - --db-pool-initial-size=${kc.pool}
-            - --db-pool-min-size=${kc.pool}
-            - --db-pool-max-size=${kc.pool}
-          env:
-            - {name: KC_DB, value: postgres}
-            - {name: KC_DB_URL, value: "jdbc:postgresql://<DB_HOST>:5432/keycloak"}
-            - name: KC_DB_USERNAME
-              valueFrom:
-                secretKeyRef: {name: keycloak-db-secret, key: username}
-            - name: KC_DB_PASSWORD
-              valueFrom:
-                secretKeyRef: {name: keycloak-db-secret, key: password}
-            - {name: KC_HOSTNAME, value: "https://<YOUR_HOSTNAME>"}
-            - {name: KC_HTTP_ENABLED, value: "true"}
-            - {name: KC_PROXY_HEADERS, value: xforwarded}
-            - name: JAVA_OPTS_KC_HEAP
-              value: "-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=50"
-            - name: JAVA_OPTS_APPEND
-              value: >-
-                -XX:+UseG1GC -XX:MaxGCPauseMillis=200
-                -XX:+ParallelRefProcEnabled -XX:+DisableExplicitGC
-                -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20
-                -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m
-                -Djgroups.dns.query=keycloak-headless.${ns}.svc.cluster.local
-          ports:
-            - {name: http,       containerPort: 8080}
-            - {name: management, containerPort: 9000}
-            - {name: jgroups,    containerPort: 7800}
-          resources:
-            requests: {cpu: "${cR}", memory: "${mR}"}
-            limits:   {cpu: "${cL}", memory: "${mL}"}
-          readinessProbe:
-            httpGet: {path: /health/ready, port: 9000}
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            failureThreshold: 3
-          livenessProbe:
-            httpGet: {path: /health/live, port: 9000}
-            initialDelaySeconds: 60
-            periodSeconds: 30
-          startupProbe:
-            httpGet: {path: /health/started, port: 9000}
-            failureThreshold: 30
-            periodSeconds: 10
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: keycloak-headless
-  namespace: ${ns}
-spec:
-  clusterIP: None
-  selector: {app: keycloak}
-  ports: [{name: jgroups, port: 7800}]`;
-
-  document.getElementById('b-op').textContent =
-`# Red Hat Build of Keycloak Operator CR
-apiVersion: k8s.keycloak.org/v2alpha1
-kind: Keycloak
-metadata:
-  name: keycloak
-  namespace: ${ns}
-spec:
-  instances: ${p}
-  image: ${img}
-  db:
-    vendor: postgres
-    host: <DB_HOST>
-    database: keycloak
-    usernameSecret: {name: keycloak-db-secret, key: username}
-    passwordSecret: {name: keycloak-db-secret, key: password}
-    poolInitialSize: ${kc.pool}
-    poolMinSize:     ${kc.pool}
-    poolMaxSize:     ${kc.pool}
-  hostname:
-    hostname: <YOUR_HOSTNAME>
-  http:
-    httpEnabled: true
-  resources:
-    requests: {cpu: "${cR}", memory: "${mR}"}
-    limits:   {cpu: "${cL}", memory: "${mL}"}
-  additionalOptions:
-    - {name: cache,                 value: ispn}
-    - {name: cache-stack,           value: kubernetes}
-    - {name: http-pool-max-threads, value: "${kc.threads}"}`;
-
-  const dc=f2(dg.cpuReq), dl=f2(dg.cpuLim), dm=`${fm(dg.memReq)}Mi`, dml=`${fm(dg.memLim)}Mi`;
-  document.getElementById('b-ispn').textContent =
-`# External Infinispan — only for multi-cluster (cross-site) active/active
-# For single/HA-cluster: use embedded Infinispan (this CR not needed)
-apiVersion: infinispan.org/v1
-kind: Infinispan
-metadata:
-  name: infinispan
-  namespace: ${ns}
-spec:
-  replicas: ${dg.dgPods}
-  container:
-    cpu: "${dc}:${dl}"
-    memory: "${dm}:${dml}"
-    extraJvmOpts: >-
-      -XX:+UseG1GC -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=40
-      -XX:MaxGCPauseMillis=300 -XX:+DisableExplicitGC
-  security:
-    endpointSecretName: infinispan-credentials
-    endpointEncryption:
-      type: Service
-      certServiceName: service.beta.openshift.io
-  service:
-    type: DataGrid
-    sites:
-      local: {name: site-a, expose: {type: ClusterIP}}
-      locations:
-        - {name: site-b, url: "openshift://api.<SITE_B>:6443", secretName: site-b-secret}
----
-apiVersion: v1
-kind: Secret
-metadata: {name: infinispan-credentials, namespace: ${ns}}
-stringData:
-  identities.yaml: |
-    credentials:
-      - username: developer
-        password: <CHANGE_ME>
----
-# Required Cache CRs — one per cache
-apiVersion: infinispan.org/v2alpha1
-kind: Cache
-metadata: {name: authenticationSessions, namespace: ${ns}}
-spec:
-  clusterName: infinispan
-  name: authenticationSessions
-  template: |
-    <distributed-cache name="authenticationSessions" owners="2" statistics="false">
-      <encoding media-type="application/x-protostream"/>
-      <memory max-count="10000"/>
-      <backups>
-        <backup site="site-b" strategy="SYNC" failure-policy="FAIL">
-          <take-offline min-wait="120000"/>
-        </backup>
-      </backups>
-    </distributed-cache>`;
-
-  document.getElementById('b-pg').textContent =
-`# CloudNativePG — ${pg.vcpu} vCPU · ${pg.ram} GiB RAM · ${pg.stor} GiB storage
-# Aurora equivalent: ${pg.inst}
-apiVersion: postgresql.cnpg.io/v1
-kind: Cluster
-metadata: {name: keycloak-db, namespace: keycloak-db}
-spec:
-  instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
-  storage:
-    storageClass: fast-ssd
-    size: ${pg.stor}Gi
-  resources:
-    requests: {cpu: "${Math.max(1,Math.floor(pg.vcpu*0.5))}", memory: "${Math.round(pg.ram*0.75)}Gi"}
-    limits:   {cpu: "${pg.vcpu}", memory: "${pg.ram}Gi"}
-  primaryUpdateStrategy: unsupervised
-  minSyncReplicas: 1
-  maxSyncReplicas: 1
-  failoverDelay: 30s
-  affinity:
-    podAntiAffinityType: required
-    topologyKey: topology.kubernetes.io/zone
-  postgresql:
-    parameters:
-      max_connections:          "${pg.maxConn}"
-      shared_buffers:           "${pg.sb}MB"
-      effective_cache_size:     "${pg.ec}MB"
-      work_mem:                 "${pg.wm}MB"
-      maintenance_work_mem:     "${pg.mwm}MB"
-      wal_buffers:              "16MB"
-      min_wal_size:             "1GB"
-      max_wal_size:             "4GB"
-      wal_level:                "replica"
-      checkpoint_completion_target: "0.9"
-      effective_io_concurrency: "200"
-      random_page_cost:         "1.1"
-      tcp_keepalives_idle:      "60"
-  bootstrap:
-    initdb:
-      database: keycloak
-      owner: keycloak
-      secret: {name: keycloak-db-credentials}
-      encoding: UTF8
-      localeCType: C
-  backup:
-    retentionPolicy: "30d"
-    barmanObjectStore:
-      destinationPath: "s3://<BUCKET>/keycloak-db"
-      s3Credentials:
-        accessKeyId:    {name: backup-s3, key: ACCESS_KEY_ID}
-        secretAccessKey:{name: backup-s3, key: ACCESS_KEY_SECRET}
-      wal: {compression: gzip}
-  monitoring:
-    enablePodMonitor: true
----
-apiVersion: v1
-kind: Secret
-metadata: {name: keycloak-db-credentials, namespace: keycloak-db}
-stringData: {username: keycloak, password: <CHANGE_ME>}`;
-
-  document.getElementById('b-jvm').textContent =
-`# KC: ${fm(kc.memLim)} MiB limit · heap ${fm(kc.heap)} MiB · pool ${kc.pool}/pod · ${kc.threads} HTTP threads
-
-# Container-aware heap (recommended):
-JAVA_OPTS_KC_HEAP="-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=50"
-
-# Fixed heap:
-JAVA_OPTS_KC_HEAP="-Xms${fm(kc.heap*0.7)}m -Xmx${fm(kc.heap)}m"
-
-# GC tuning:
-JAVA_OPTS_APPEND="\\
-  -XX:+UseG1GC -XX:MaxGCPauseMillis=200 \\
-  -XX:+ParallelRefProcEnabled -XX:+DisableExplicitGC \\
-  -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20 \\
-  -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m \\
-  -XX:+UseContainerSupport -Dsun.zip.disableMemoryMapping=true"
-
-# resources:
-#   requests: {cpu: "${cR}", memory: "${fm(kc.expMem)}Mi"}
-#   limits:   {cpu: "${cL}", memory: "${mL}"}
-
-# Data Grid JVM: ${fm(dg.memLim)} MiB limit · heap ${fm(dg.heap)} MiB (60%)
-DG_JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=40 \\
-  -XX:MaxGCPauseMillis=300 -XX:+DisableExplicitGC \\
-  -XX:MetaspaceSize=64m -XX:MaxMetaspaceSize=128m"`;
-
-  const maxR = Math.max(p*2, p+3);
-  document.getElementById('b-hpa').textContent =
-`apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata: {name: keycloak-hpa, namespace: ${ns}}
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: keycloak
-  minReplicas: ${p}
-  maxReplicas: ${maxR}
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 60   # 60% of ${cL} vCPU limit
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: AverageValue
-          averageValue: ${fm(kc.expMem*0.85)}Mi   # 85% of ${fm(kc.expMem)} MiB request
-  behavior:
-    scaleUp:   {stabilizationWindowSeconds: 30,  policies: [{type: Pods, value: 1, periodSeconds: 60}]}
-    scaleDown: {stabilizationWindowSeconds: 300, policies: [{type: Pods, value: 1, periodSeconds: 120}]}
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata: {name: keycloak-pdb, namespace: ${ns}}
-spec:
-  minAvailable: ${Math.max(1, p-1)}
-  selector:
-    matchLabels: {app: keycloak}`;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   NOTES / ASSUMPTIONS LOG
-══════════════════════════════════════════════════════════════ */
-function buildNotes(w, kc, dg, pg) {
-  const isQ = currentMode === 'quick';
-  document.getElementById('notes-body').innerHTML = `
-<div class="notice ni" style="margin-bottom:14px">
-  <strong>Assumptions log</strong> — every step shown so you can validate with your customer. Change any input or assumption and results update instantly.
-</div>
-<table class="bt">
-<thead><tr><th>Parameter</th><th>Formula / basis</th><th>Value</th><th>Source</th></tr></thead>
-<tbody>
-${isQ ? `
-<tr><td colspan="4" style="color:var(--rh-red);font-weight:600;padding-top:10px">Quick mode — input → derived workload</td></tr>
-<tr><td>Average TPS input</td><td class="s">Direct input</td><td class="n nk">${Q.tps}/s</td><td class="a">Input</td></tr>
-<tr><td>Peak multiplier</td><td class="s">Editable assumption (typical banking: 2–3×)</td><td class="n nk">${A.peak}×</td><td class="a">Assumption</td></tr>
-<tr><td>Peak TPS</td><td class="s">${Q.tps} avg × ${A.peak}</td><td class="n nk">${f1(w.peakTPS)}/s</td><td class="a">Derived</td></tr>
-<tr><td>Login % of TPS</td><td class="s">Assumption — banking typical: 10–20%</td><td class="n nk">${A.lpct}%</td><td class="a">Assumption</td></tr>
-<tr><td>Client grant % of TPS</td><td class="s">Assumption — M2M / service-to-service: 20–40%</td><td class="n nk">${A.gpct}%</td><td class="a">Assumption</td></tr>
-<tr><td>Refresh % of TPS</td><td class="s">Assumption — typically 1:6–1:10 vs logins</td><td class="n nk">${A.rpct}%</td><td class="a">Assumption</td></tr>
-<tr><td>Logins/sec (peak)</td><td class="s">${f1(w.peakTPS)} × ${A.lpct}%</td><td class="n nk">${f1(w.logins)}/s</td><td class="a">Derived</td></tr>
-<tr><td>Grants/sec (peak)</td><td class="s">${f1(w.peakTPS)} × ${A.gpct}%</td><td class="n nk">${f1(w.grants)}/s</td><td class="a">Derived</td></tr>
-<tr><td>Refresh/sec (peak)</td><td class="s">${f1(w.peakTPS)} × ${A.rpct}%</td><td class="n nk">${f1(w.refresh)}/s</td><td class="a">Derived</td></tr>
-<tr><td>Session ratio</td><td class="s">Assumption — ${A.sess}% of ${fi(Q.users)} users at peak</td><td class="n nk">${A.sess}%</td><td class="a">Assumption</td></tr>
+function buildNotes(w,kc,dg,pg){
+  const isQ=currentMode==='quick';
+  const rows=isQ?`<tr><td colspan="4" style="color:var(--rh-red);font-weight:600;padding-top:10px">Quick mode — input → derived</td></tr>
+<tr><td>Avg TPS</td><td class="s">Direct input</td><td class="n nk">${Q.tps}/s</td><td class="a">Input</td></tr>
+<tr><td>Peak multiplier</td><td class="s">Editable assumption</td><td class="n nk">${A.peak}×</td><td class="a">Assumption</td></tr>
+<tr><td>Peak TPS</td><td class="s">${Q.tps} × ${A.peak}</td><td class="n nk">${f1(w.peakTPS)}/s</td><td class="a">Derived</td></tr>
+<tr><td>Login %</td><td class="s">Assumption — banking typical: 10–20%</td><td class="n nk">${A.lpct}%</td><td class="a">Assumption</td></tr>
+<tr><td>Grant %</td><td class="s">Assumption — M2M / service: 20–40%</td><td class="n nk">${A.gpct}%</td><td class="a">Assumption</td></tr>
+<tr><td>Refresh %</td><td class="s">Assumption — typically 1:6–1:10 vs logins</td><td class="n nk">${A.rpct}%</td><td class="a">Assumption</td></tr>
+<tr><td>Logins/sec</td><td class="s">${f1(w.peakTPS)} × ${A.lpct}%</td><td class="n nk">${f1(w.logins)}/s</td><td class="a">Derived</td></tr>
+<tr><td>Grants/sec</td><td class="s">${f1(w.peakTPS)} × ${A.gpct}%</td><td class="n nk">${f1(w.grants)}/s</td><td class="a">Derived</td></tr>
+<tr><td>Refresh/sec</td><td class="s">${f1(w.peakTPS)} × ${A.rpct}%</td><td class="n nk">${f1(w.refresh)}/s</td><td class="a">Derived</td></tr>
+<tr><td>Session ratio</td><td class="s">${A.sess}% of ${fi(Q.users)} users at peak</td><td class="n nk">${A.sess}%</td><td class="a">Assumption</td></tr>
 <tr><td>Peak sessions</td><td class="s">${fi(Q.users)} × ${A.sess}%</td><td class="n nk">${fi(w.sessions)}</td><td class="a">Derived</td></tr>
-<tr><td>CPU headroom factor</td><td class="s">Limit = request × factor</td><td class="n nk">${A.cpuHr}×</td><td class="a">Assumption</td></tr>
-` : `
-<tr><td colspan="4" style="color:var(--rh-red);font-weight:600;padding-top:10px">Detailed mode — direct inputs</td></tr>
-<tr><td>Logins / sec</td><td class="s">Direct input (peak)</td><td class="n nk">${f1(w.logins)}/s</td><td class="a">Input</td></tr>
-<tr><td>Client grants / sec</td><td class="s">Direct input (peak)</td><td class="n nk">${f1(w.grants)}/s</td><td class="a">Input</td></tr>
-<tr><td>Refresh / sec</td><td class="s">Direct input (peak)</td><td class="n nk">${f1(w.refresh)}/s</td><td class="a">Input</td></tr>
-<tr><td>Sessions</td><td class="s">Direct input</td><td class="n nk">${fi(w.sessions)}</td><td class="a">Input</td></tr>
-`}
-<tr><td colspan="4" style="color:var(--rh-red);font-weight:600;padding-top:10px">Keycloak (official KC v26.x benchmark)</td></tr>
-<tr><td>CPU for logins</td><td class="s">1 vCPU per 15/sec · Argon2id 5 iter.</td><td class="n nk">${f2(kc.cpuL)} vCPU</td><td class="a">KC docs</td></tr>
-<tr><td>CPU for grants</td><td class="s">1 vCPU per 120/sec · TLS-intensive</td><td class="n nk">${f2(kc.cpuG)} vCPU</td><td class="a">KC docs</td></tr>
-<tr><td>CPU for refresh</td><td class="s">1 vCPU per 120/sec</td><td class="n nk">${f2(kc.cpuR)} vCPU</td><td class="a">KC docs</td></tr>
+<tr><td>CPU headroom</td><td class="s">Limit = request × factor</td><td class="n nk">${A.cpuHr}×</td><td class="a">Assumption</td></tr>`:`<tr><td colspan="4" style="color:var(--rh-red);font-weight:600;padding-top:10px">Detailed mode — direct inputs at peak</td></tr>
+<tr><td>Logins/sec</td><td class="s">Direct input</td><td class="n nk">${f1(w.logins)}/s</td><td class="a">Input</td></tr>
+<tr><td>Grants/sec</td><td class="s">Direct input</td><td class="n nk">${f1(w.grants)}/s</td><td class="a">Input</td></tr>
+<tr><td>Refresh/sec</td><td class="s">Direct input</td><td class="n nk">${f1(w.refresh)}/s</td><td class="a">Input</td></tr>`;
+  document.getElementById('notes-body').innerHTML=`
+<div class="pf-v6-c-alert pf-m-info pf-m-inline" style="margin-bottom:16px"><div class="pf-v6-c-alert__icon">ℹ</div><p class="pf-v6-c-alert__title"><strong>Assumptions log</strong> — every step shown. Change any input above and results update instantly.</p></div>
+<table class="nt"><thead><tr><th>Parameter</th><th>Formula / basis</th><th>Value</th><th>Source</th></tr></thead><tbody>
+${rows}
+<tr><td colspan="4" style="color:var(--rh-red);font-weight:600;padding-top:10px">Keycloak (KC v26.x official benchmark)</td></tr>
+<tr><td>CPU logins</td><td class="s">1 vCPU per 15/sec · Argon2id 5 iter.</td><td class="n nk">${f2(kc.cpuL)} vCPU</td><td class="a">KC docs</td></tr>
+<tr><td>CPU grants</td><td class="s">1 vCPU per 120/sec · TLS-intensive</td><td class="n nk">${f2(kc.cpuG)} vCPU</td><td class="a">KC docs</td></tr>
+<tr><td>CPU refresh</td><td class="s">1 vCPU per 120/sec</td><td class="n nk">${f2(kc.cpuR)} vCPU</td><td class="a">KC docs</td></tr>
 <tr><td>CPU request / pod</td><td class="s">${f2(kc.clCPU)} ÷ ${kc.pods} pods</td><td class="n nk">${f2(kc.cpuReq)} vCPU</td><td class="a">Derived</td></tr>
-<tr><td>CPU limit / pod</td><td class="s">${f2(kc.cpuReq)} × ${w.cpuHr}× headroom</td><td class="n nk">${f2(kc.cpuLim)} vCPU</td><td class="a">KC docs</td></tr>
-<tr><td>Memory / pod</td><td class="s">1,250 MiB base @ 10K sessions</td><td class="n nk">${fm(kc.expMem)} MiB</td><td class="a">KC docs</td></tr>
+<tr><td>CPU limit / pod</td><td class="s">${f2(kc.cpuReq)} × ${w.cpuHr}×</td><td class="n nk">${f2(kc.cpuLim)} vCPU</td><td class="a">KC docs</td></tr>
+<tr><td>Memory / pod</td><td class="s">1,250 MiB base + extra sessions</td><td class="n nk">${fm(kc.expMem)} MiB</td><td class="a">KC docs</td></tr>
 <tr><td>Memory limit / pod</td><td class="s">(${fm(kc.expMem)} − 300 non-heap) ÷ 0.70</td><td class="n nk">${fm(kc.memLim)} MiB</td><td class="a">KC docs</td></tr>
 <tr><td>JVM heap</td><td class="s">${fm(kc.memLim)} × 0.70 (MaxRAMPercentage=70)</td><td class="n nk">${fm(kc.heap)} MiB</td><td class="a">KC default</td></tr>
 <tr><td>DB pool / pod</td><td class="s">KC HA guide: pool-min=pool-max=30</td><td class="n nk">${kc.pool}/pod</td><td class="a">KC docs</td></tr>
 <tr><td colspan="4" style="color:var(--rh-teal);font-weight:600;padding-top:10px">Infinispan / Data Grid</td></tr>
 <tr><td>Min pods</td><td class="s">numOwners=2 → ≥3 to survive 1 failure</td><td class="n nd">${dg.dgPods}</td><td class="a">DG docs</td></tr>
 <tr><td>Auth sessions</td><td class="s">(${f1(w.logins+w.refresh)}) × ${w.ttl}s TTL</td><td class="n nd">${fi(dg.concSess)}</td><td class="a">Derived</td></tr>
+<tr><td>Memory / pod</td><td class="s">512 MB base + session data × 2 owners ÷ pods</td><td class="n nd">${fm(dg.memReq)} MiB</td><td class="a">Derived</td></tr>
 <tr><td colspan="4" style="color:var(--rh-blue);font-weight:600;padding-top:10px">PostgreSQL</td></tr>
 <tr><td>Write IOPS</td><td class="s">(${f1(w.logins*2+w.refresh)}/s ÷ 100) × 1,400</td><td class="n np">${fi(pg.iops)}</td><td class="a">KC docs</td></tr>
 <tr><td>DB vCPU</td><td class="s">${f1(w.logins*2+w.refresh)}/s × (0.35–0.70) ÷ 100</td><td class="n np">${f2(pg.dbLo)}–${f2(pg.dbHi)} vCPU</td><td class="a">KC docs</td></tr>
 <tr><td>shared_buffers</td><td class="s">25% of ${pg.ram} GiB RAM</td><td class="n np">${pg.sb} MB</td><td class="a">PG docs</td></tr>
-<tr><td>effective_cache</td><td class="s">70% of ${pg.ram} GiB RAM</td><td class="n np">${pg.ec} MB</td><td class="a">PG docs</td></tr>
-<tr><td>work_mem</td><td class="s">${pg.sb} MB ÷ ${pg.maxConn} connections</td><td class="n np">${pg.wm} MB</td><td class="a">Derived</td></tr>
+<tr><td>Storage</td><td class="s">20 GB + ${fi(w.users)} users + WAL</td><td class="n np">${pg.stor} GiB</td><td class="a">Derived</td></tr>
 </tbody></table>
-<div class="notice nw">
-<strong>Key levers to validate with customer:</strong> Peak multiplier (${isQ?A.peak:1}×) and traffic distribution (login ${isQ?A.lpct:'-'}% / grants ${isQ?A.gpct:'-'}% / refresh ${isQ?A.rpct:'-'}%) are the most impactful assumptions. A different mix can change KC CPU sizing by 3–5×. Run <a href="https://www.keycloak.org/keycloak-benchmark/kubernetes-guide/latest/" target="_blank">Keycloak Benchmark</a> to validate before production.
-</div>`;
-}
+<div class="pf-v6-c-alert pf-m-warning pf-m-inline" style="margin-top:8px"><div class="pf-v6-c-alert__icon">⚠</div><p class="pf-v6-c-alert__title"><strong>Validate with customer:</strong> Peak multiplier (${isQ?A.peak+'×':'direct'}) and traffic distribution are the most impactful assumptions. Run <a href="https://www.keycloak.org/keycloak-benchmark/kubernetes-guide/latest/" target="_blank">Keycloak Benchmark</a> to validate before production.</p></div>`;}
 
-/* ══════════════════════════════════════════════════════════════
-   COPY TEXT SUMMARY
-══════════════════════════════════════════════════════════════ */
-function copyText() {
-  const w = getW(), kc = calcKC(w), dg = calcDG(w, kc), pg = calcPG(w, kc);
-  const today = new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
-  const line = '─'.repeat(50);
-  const txt = [
-    'KEYCLOAK IAM PLATFORM — INFRASTRUCTURE SIZING',
-    'Red Hat Build of Keycloak v26.x',
-    `Generated: ${today}  |  Mode: ${currentMode === 'quick' ? 'Quick Estimate' : 'Detailed'}`,
-    `Platform: ${platformLabels[w.platform]||w.platform}  |  Deployment: ${modeLabels[w.mode]||w.mode}`,
-    '',
-    line,
-    'INPUTS',
-    line,
-    `Users:       ${fi(w.users)}`,
-    `Applications:${fi(w.clients)} OAuth 2.0 clients`,
-    `Peak TPS:    ${f1(w.peakTPS)}/s  (${f1(w.logins)} logins + ${f1(w.grants)} grants + ${f1(w.refresh)} refresh)`,
-    '',
-    line,
-    `KEYCLOAK — ${kc.pods} pod${kc.pods>1?'s':''}`,
-    line,
-    `CPU Request:    ${f2(kc.cpuReq)} vCPU / pod`,
-    `CPU Limit:      ${f2(kc.cpuLim)} vCPU / pod`,
-    `Memory Request: ${fm(kc.expMem)} MiB / pod`,
-    `Memory Limit:   ${fm(kc.memLim)} MiB / pod`,
-    `JVM Heap:       ${fm(kc.heap)} MiB`,
-    `DB Pool:        ${kc.pool} connections / pod (init=min=max)`,
-    `HTTP Threads:   ${kc.threads} max / pod`,
-    `Cluster totals: ${f2(kc.clCPU)} vCPU · ${kc.totMem.toFixed(1)} GiB`,
-    '',
-    line,
-    `INFINISPAN / DATA GRID — ${w.ispn==='external'?dg.dgPods+' pods / site':'Embedded'}`,
-    line,
-    w.ispn==='external'
-      ? `CPU:    ${f2(dg.cpuReq)} / ${f2(dg.cpuLim)} vCPU\nMemory: ${fm(dg.memReq)} / ${fm(dg.memLim)} MiB\nHeap:   ${fm(dg.heap)} MiB\nnumOwners: 2 (HA)`
-      : `Mode: Embedded — runs inside Keycloak pods\nNo external deployment needed for ${modeLabels[w.mode]||w.mode}`,
-    '',
-    line,
-    'POSTGRESQL — 1 primary + 2 synchronous replicas',
-    line,
-    `vCPU:             ${pg.vcpu}`,
-    `RAM:              ${pg.ram} GiB`,
-    `Storage:          ${pg.stor} GiB (SSD)`,
-    `Write IOPS:       ${fi(pg.iops)}`,
-    `Max connections:  ${pg.maxConn}`,
-    `shared_buffers:   ${pg.sb} MB`,
-    `effective_cache:  ${pg.ec} MB`,
-    `work_mem:         ${pg.wm} MB`,
-    `Cloud instance:   ${pg.inst} (Aurora equiv.)`,
-    '',
-    line,
-    'ASSUMPTIONS',
-    line,
-    currentMode==='quick'
-      ? `Peak multiplier: ${A.peak}×  |  Login: ${A.lpct}%  |  Grants: ${A.gpct}%  |  Refresh: ${A.rpct}%\nSession ratio: ${A.sess}% of users  |  Auth TTL: ${A.ttl}s  |  Hashing: ${A.hash}`
-      : `Direct peak inputs — ${f1(w.logins)} logins/s · ${f1(w.grants)} grants/s · ${f1(w.refresh)} refresh/s`,
-    '',
-    'Based on: official Keycloak v26.x benchmark (OpenShift 4.18 / ROSA · Aurora PostgreSQL · OpenJDK 21)',
-    'Always validate with load tests before production.',
-  ].join('\n');
-
-  const fb = () => { const ta=document.createElement('textarea'); ta.value=txt; ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy')}catch(e){} document.body.removeChild(ta); };
-  if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(fb); else fb();
-
-  const btn = document.querySelector('.sum-action.secondary');
-  const orig = btn.innerHTML;
-  btn.innerHTML = '<svg viewBox="0 0 16 16" style="width:13px;height:13px;fill:currentColor"><path d="M6 10.8l-2.8-2.8L2 9.2l4 4 8-8-1.2-1.2z"/></svg> Copied!';
-  btn.style.color = 'var(--rh-green)'; btn.style.borderColor = 'var(--rh-green)';
-  setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 2500);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   MODE SWITCHING
-══════════════════════════════════════════════════════════════ */
-function setMode(m) {
-  currentMode = m;
-  document.getElementById('pnl-quick').classList.toggle('on', m==='quick');
-  document.getElementById('pnl-detailed').classList.toggle('on', m==='detailed');
-  document.getElementById('btn-quick').classList.toggle('active', m==='quick');
-  document.getElementById('btn-detailed').classList.toggle('active', m==='detailed');
-  // When switching to detailed, seed from quick derived values
-  if (m === 'detailed') {
-    const w = getW();
-    D.logins = Math.round(w.logins*10)/10; D.grants = Math.round(w.grants*10)/10;
-    D.refresh = Math.round(w.refresh*10)/10; D.sessions = w.sessions;
-    D.clients = w.clients; D.users = Q.users; D.pods = A.pods;
-    D.mode = A.mode; D.platform = A.platform; D.ispn = A.ispn;
-    ['d-logins','d-grants','d-refresh','d-sessions','d-clients','d-users','d-pods'].forEach(id => {
-      const el = document.getElementById(id); if (el) el.value = D[id.slice(2).replace('-r','')];
-    });
-    ['d-logins-r','d-grants-r','d-refresh-r','d-sessions-r','d-clients-r','d-users-r','d-pods-r'].forEach(id => {
-      const el = document.getElementById(id), key = id.slice(2).replace('-r','');
-      if (el) el.value = D[key] || 0;
-    });
-    document.getElementById('d-platform').value = D.platform;
-    document.getElementById('d-ispn').value = D.ispn;
-  }
-  upd();
-}
-
-/* ══════════════════════════════════════════════════════════════
-   OTHER UI HELPERS
-══════════════════════════════════════════════════════════════ */
-function toggleAsm() { document.getElementById('asm-wrap').classList.toggle('open'); }
-function ST(btn, id, c) {
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('ak','at','ab'));
-  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('on'));
-  btn.classList.add(c==='t'?'at':c==='b'?'ab':'ak');
-  document.getElementById(id).classList.add('on');
-}
-function cp(id, btn) {
-  const txt=document.getElementById(id).textContent;
-  const fb=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta)};
+function copyText(){
+  const w=getW(),kc=calcKC(w),dg=calcDG(w,kc),pg=calcPG(w,kc);
+  const today=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const line='─'.repeat(52);
+  const txt=[`KEYCLOAK IAM PLATFORM — INFRASTRUCTURE SIZING`,`Red Hat Build of Keycloak v26.x`,`Generated: ${today}  |  Mode: ${currentMode==='quick'?'Quick Estimate':'Detailed'}`,`Platform: ${platformLabels[w.platform]||w.platform}  |  Deployment: ${modeLabels[w.mode]||w.mode}`,``,line,`INPUTS`,line,`Users:        ${fi(w.users)}`,`Applications: ${fi(w.clients)} OAuth 2.0 clients`,`Peak TPS:     ${f1(w.peakTPS)}/s  (${f1(w.logins)} logins + ${f1(w.grants)} grants + ${f1(w.refresh)} refresh)`,``,line,`KEYCLOAK — ${kc.pods} pod${kc.pods>1?'s':''}`,line,`CPU Request:    ${f2(kc.cpuReq)} vCPU / pod`,`CPU Limit:      ${f2(kc.cpuLim)} vCPU / pod`,`Memory Request: ${fm(kc.expMem)} MiB / pod`,`Memory Limit:   ${fm(kc.memLim)} MiB / pod`,`JVM Heap:       ${fm(kc.heap)} MiB`,`DB Pool:        ${kc.pool} connections / pod (init=min=max)`,`HTTP Threads:   ${kc.threads} max / pod`,`Cluster totals: ${f2(kc.clCPU)} vCPU · ${kc.totMem.toFixed(1)} GiB`,``,line,`INFINISPAN / DATA GRID — ${w.ispn==='external'?dg.dgPods+' pods / site':'Embedded'}`,line,w.ispn==='external'?`CPU:    ${f2(dg.cpuReq)} / ${f2(dg.cpuLim)} vCPU\nMemory: ${fm(dg.memReq)} / ${fm(dg.memLim)} MiB\nHeap:   ${fm(dg.heap)} MiB\nnumOwners: 2 (HA)`:`Mode: Embedded — runs inside Keycloak pods\nNo external deployment needed for ${modeLabels[w.mode]||w.mode}`,``,line,`POSTGRESQL — 1 primary + 2 synchronous replicas`,line,`vCPU:             ${pg.vcpu}`,`RAM:              ${pg.ram} GiB`,`Storage:          ${pg.stor} GiB (SSD)`,`Write IOPS:       ${fi(pg.iops)}`,`Max connections:  ${pg.maxConn}`,`shared_buffers:   ${pg.sb} MB`,`effective_cache:  ${pg.ec} MB`,`work_mem:         ${pg.wm} MB`,`Cloud instance:   ${pg.inst} (Aurora equiv.)`,``,line,`ASSUMPTIONS`,line,currentMode==='quick'?`Peak multiplier: ${A.peak}×  |  Login: ${A.lpct}%  |  Grants: ${A.gpct}%  |  Refresh: ${A.rpct}%\nSession ratio: ${A.sess}% of users  |  Auth TTL: ${A.ttl}s`:`Direct peak inputs — ${f1(w.logins)} logins/s · ${f1(w.grants)} grants/s · ${f1(w.refresh)} refresh/s`,``,`Based on: official Keycloak v26.x benchmark (OpenShift 4.18/ROSA · Aurora PostgreSQL · OpenJDK 21)`].join('\n');
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);};
   if(navigator.clipboard)navigator.clipboard.writeText(txt).catch(fb);else fb();
-  btn.textContent='✓ Copied';btn.classList.add('ok');
-  setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok')},2200);
+  const btn=document.querySelector('.sum-toolbar-right .pf-v6-c-button.pf-m-secondary');if(btn){const orig=btn.textContent;btn.textContent='✓ Copied!';setTimeout(()=>{btn.textContent=orig;},2200);}
 }
-function resetAll() {
-  Q.users=50000;Q.apps=10;Q.rps=100;Q.tps=50;
-  A.lpct=15;A.gpct=30;A.rpct=55;A.pods=3;A.mode='single';A.platform='openshift';A.ispn='embedded';A.pg='cnpg';A.peak=2;A.sess=5;A.ttl=300;A.hash='argon2';A.cpuHr=2.5;
+
+function setMode(m){
+  currentMode=m;
+  document.getElementById('pnl-quick').classList.toggle('on',m==='quick');
+  document.getElementById('pnl-detailed').classList.toggle('on',m==='detailed');
+  document.getElementById('btn-quick').classList.toggle('pf-m-selected',m==='quick');
+  document.getElementById('btn-detailed').classList.toggle('pf-m-selected',m==='detailed');
+  if(m==='detailed'){const w=getW();D.logins=Math.round(w.logins*10)/10;D.grants=Math.round(w.grants*10)/10;D.refresh=Math.round(w.refresh*10)/10;D.sessions=w.sessions;D.clients=w.clients;D.users=Q.users;D.pods=A.pods;D.mode=A.mode;D.platform=A.platform;D.ispn=A.ispn;['d-logins','d-grants','d-refresh','d-sessions','d-clients','d-users','d-pods'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=D[id.slice(2)];});['d-logins-r','d-grants-r','d-refresh-r','d-sessions-r','d-clients-r','d-users-r','d-pods-r'].forEach(id=>{const e=document.getElementById(id);const k=id.replace('d-','').replace('-r','');if(e)e.value=D[k]||0;});document.getElementById('d-platform').value=D.platform;document.getElementById('d-ispn').value=D.ispn;}
+  upd();
+}
+
+function toggleAsm(){
+  const sec=document.getElementById('asm-section'),btn=sec.querySelector('.pf-v6-c-expandable-section__toggle'),content=document.getElementById('asm-content');
+  const expanded=btn.getAttribute('aria-expanded')==='true';
+  btn.setAttribute('aria-expanded',!expanded);
+  sec.classList.toggle('pf-m-expanded',!expanded);
+  content.hidden=expanded;
+}
+
+function ST(id){
+  document.querySelectorAll('.pf-v6-c-tabs__item').forEach(li=>{li.classList.remove('pf-m-current');li.querySelector('.pf-v6-c-tabs__link').setAttribute('aria-selected','false');});
+  document.querySelectorAll('.pf-v6-c-tab-content').forEach(p=>{p.hidden=true;});
+  document.getElementById('ti-'+id).classList.add('pf-m-current');
+  document.getElementById('ti-'+id).querySelector('.pf-v6-c-tabs__link').setAttribute('aria-selected','true');
+  document.getElementById('tp-'+id).hidden=false;
+}
+
+function cp(id,btn){
+  const txt=document.getElementById(id).textContent;
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);};
+  if(navigator.clipboard)navigator.clipboard.writeText(txt).catch(fb);else fb();
+  const orig=btn.textContent;btn.textContent='✓ Copied';
+  setTimeout(()=>{btn.textContent=orig;},2200);
+}
+
+function resetAll(){
+  Object.assign(Q,{users:50000,apps:10,rps:100,tps:50});
+  Object.assign(A,{lpct:15,gpct:30,rpct:55,pods:3,mode:'single',platform:'openshift',ispn:'embedded',pg:'cnpg',peak:2,sess:5,ttl:300,hash:'argon2',cpuHr:2.5});
   if(currentMode==='quick'){
-    ['q-users','q-apps','q-rps','q-tps'].forEach(id=>document.getElementById(id).value=Q[id.slice(2)]);
-    [['a-lpct','lbl-lpct','15%'],['a-gpct','lbl-gpct','30%'],['a-rpct','lbl-rpct','55%'],['a-peak','lbl-peak','2×'],['a-sess','lbl-sess','5%'],['a-ttl','lbl-ttl','300s'],['a-cpuhr','lbl-cpuhr','2.5×']].forEach(([rid,lid,v])=>{
-      const r=document.getElementById(rid),l=document.getElementById(lid);
-      if(r)r.value=parseFloat(v);if(l)l.textContent=v;
-    });
+    [['q-users',Q.users],['q-apps',Q.apps],['q-rps',Q.rps],['q-tps',Q.tps]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=v;});
+    [['a-lpct','lbl-lpct','15%'],['a-gpct','lbl-gpct','30%'],['a-rpct','lbl-rpct','55%'],['a-peak','lbl-peak','2×'],['a-sess','lbl-sess','5%'],['a-ttl','lbl-ttl','300s'],['a-cpuhr','lbl-cpuhr','2.5×']].forEach(([rid,lid,v])=>{const r=document.getElementById(rid),l=document.getElementById(lid);if(r)r.value=parseFloat(v);if(l)l.textContent=v;});
     document.getElementById('a-pods').value=3;
-    document.getElementById('a-mode').value='single';
-    document.getElementById('a-platform').value='openshift';
-    document.getElementById('a-ispn').value='embedded';
-    document.getElementById('a-pg').value='cnpg';
-    document.getElementById('a-hash').value='argon2';
+    ['a-mode','a-platform','a-ispn','a-pg','a-hash'].forEach(id=>{const e=document.getElementById(id);if(e)e.value={mode:'single',platform:'openshift',ispn:'embedded',pg:'cnpg',hash:'argon2'}[id.slice(2)];});
   }
   upd();
 }
 
-/* ── Init ── */
 upd();
 </script>
 </body>
