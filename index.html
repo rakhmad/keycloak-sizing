@@ -143,7 +143,7 @@ code{font-family:'Red Hat Mono',monospace;font-size:11px;background:rgba(128,128
 .ypnl{padding:20px 24px 24px;min-height:520px;}
 .ypnl .pf-v6-c-code-block{margin-bottom:0;}
 .cb-lbl{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;}
-@media print{body{background:#fff!important;}
+@media print{body{background:#fff!important;}#js-warn{display:none!important;}
 .pf-v6-c-masthead,.phi,footer{display:none!important;}
 .pf-v6-c-page__main-section{padding:0!important;}
 .scard{box-shadow:none;border:1px solid #d2d3d5;}
@@ -260,6 +260,22 @@ body,#page{max-width:100%;overflow-x:hidden;}
   </div>
 </header>
 <main class="pf-v6-c-page__main" id="mc" tabindex="-1">
+<!-- JS-guard banner: visible by default, hidden when JS runs successfully -->
+<div id="js-warn" style="
+  background:linear-gradient(135deg,#C9190B,#7D1212);
+  color:#fff;padding:14px 20px;text-align:center;
+  font-family:'Red Hat Text',sans-serif;font-size:13px;line-height:1.7;
+  border-bottom:3px solid rgba(255,255,255,.15);
+">
+  ⚠️ <strong>Numbers not showing?</strong>
+  Your browser (in-app or QuickLook) blocked JavaScript.<br>
+  Open in <strong>Safari</strong> or <strong>Chrome</strong> — or visit the hosted version:<br>
+  <a href="https://rakhmad.github.io/keycloak-sizing/"
+     style="color:#FFD580;font-weight:700;text-decoration:underline"
+     target="_blank">rakhmad.github.io/keycloak-sizing</a>
+  &nbsp;·&nbsp;
+  <span style="opacity:.8;font-size:11px">Tap ··· → Open in Browser if using TikTok/Facebook/WhatsApp</span>
+</div>
 <section class="pf-v6-c-page__main-section phi" style="padding-bottom:8px">
 <div class="mp on" id="pnl-quick">
   <div class="sl">Enter your numbers</div>
@@ -1398,9 +1414,20 @@ function resetAll(){
 // window.load fallback to cover all cases.
 (function robustInit(){
   function run(){
-    try{upd();}catch(e){
+    try{
+      upd();
+      // JS ran successfully — hide the "open in real browser" warning
+      var w=document.getElementById('js-warn');
+      if(w)w.style.display='none';
+    }catch(e){
       // Retry once after a short delay if first call fails
-      setTimeout(function(){try{upd();}catch(e2){console.error('KC Sizing: upd failed',e2);}},300);
+      setTimeout(function(){
+        try{
+          upd();
+          var w=document.getElementById('js-warn');
+          if(w)w.style.display='none';
+        }catch(e2){console.error('KC Sizing: upd failed',e2);}
+      },300);
     }
   }
   // Direct call — works when script is at end of body (normal browsers)
