@@ -331,9 +331,9 @@ body,#page{max-width:100%;overflow-x:hidden;}
       <div class="pf-v6-c-card" style="height:100%">
         <div class="pf-v6-c-card__header"><div class="pf-v6-c-card__title"><h3 class="pf-v6-c-card__title-text"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rh);margin-right:8px;vertical-align:middle"></span>Authentication Workload</h3></div></div>
         <div class="pf-v6-c-card__body"><div class="pf-v6-c-form">
-          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Password logins / second</span></label><div class="pf-v6-c-form__group-control"><div class="fr"><input type="range" id="d-logins-r" min="0" max="300" value="15" step="1" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-logins" value="15" min="0" max="9999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">1 vCPU per 15/sec · up to 300/sec</span></div></div></div></div>
-          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Client credential grants / second</span></label><div class="pf-v6-c-form__group-control"><div class="fr"><input type="range" id="d-grants-r" min="0" max="2000" value="120" step="10" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-grants" value="120" min="0" max="9999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">1 vCPU per 120/sec · up to 2,000/sec</span></div></div></div></div>
-          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Refresh token requests / second</span></label><div class="pf-v6-c-form__group-control"><div class="fr"><input type="range" id="d-refresh-r" min="0" max="435" value="120" step="5" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-refresh" value="120" min="0" max="9999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">1 vCPU per 120/sec · up to 435/sec</span></div></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Password logins / second</span></label><div class="pf-v6-c-form__group-control"><div class="fr"><input type="range" id="d-logins-r" min="0" max="5000" value="15" step="5" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-logins" value="15" min="0" max="9999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">1 vCPU per 15/sec · type higher than slider max for estimates</span></div></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Client credential grants / second</span></label><div class="pf-v6-c-form__group-control"><div class="fr"><input type="range" id="d-grants-r" min="0" max="10000" value="120" step="50" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-grants" value="120" min="0" max="9999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">1 vCPU per 120/sec · type higher than slider max for estimates</span></div></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Refresh token requests / second</span></label><div class="pf-v6-c-form__group-control"><div class="fr"><input type="range" id="d-refresh-r" min="0" max="5000" value="120" step="5" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-refresh" value="120" min="0" max="9999"></span></div><div class="pf-v6-c-helper-text"><div class="pf-v6-c-helper-text__item"><span class="pf-v6-c-helper-text__item-text">1 vCPU per 120/sec · type higher than slider max for estimates</span></div></div></div></div>
           <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Hashing algorithm</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="d-hash"><option value="argon2">Argon2id (OWASP, 5 iter.)</option><option value="bcrypt">bcrypt</option><option value="pbkdf2">PBKDF2-SHA256</option></select></span></div></div>
         </div></div>
       </div>
@@ -342,7 +342,7 @@ body,#page{max-width:100%;overflow-x:hidden;}
       <div class="pf-v6-c-card" style="height:100%">
         <div class="pf-v6-c-card__header"><div class="pf-v6-c-card__title"><h3 class="pf-v6-c-card__title-text"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rh);margin-right:8px;vertical-align:middle"></span>Deployment Configuration</h3></div></div>
         <div class="pf-v6-c-card__body"><div class="pf-v6-c-form">
-          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Keycloak Pods</span></label><div class="pf-v6-c-form__group-control"><div class="fr"><input type="range" id="d-pods-r" min="1" max="12" value="3" step="1" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-pods" value="3" min="1" max="99"></span></div></div></div>
+          <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Keycloak Pods</span></label><div class="pf-v6-c-form__group-control"><div class="fr"><input type="range" id="d-pods-r" min="1" max="20" value="3" step="1" style="flex:1"><span class="pf-v6-c-form-control" style="width:76px;margin-top:4px"><input type="number" id="d-pods" value="3" min="1" max="99"></span></div></div></div>
           <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label"><span class="pf-v6-c-form__label-text">Platform</span></label><div class="pf-v6-c-form__group-control" style="margin-top:4px"><span class="pf-v6-c-form-control pf-m-select"><select id="d-platform"><option value="openshift">Red Hat OpenShift</option><option value="k8s">Kubernetes</option><option value="eks">Amazon EKS</option><option value="aks">Azure AKS</option><option value="gke">Google GKE</option></select></span></div></div>
           <div class="pf-v6-c-form__group"><label class="pf-v6-c-form__label" style="margin-bottom:8px"><span class="pf-v6-c-form__label-text">Deployment mode</span></label><div class="pf-v6-c-form__group-control">
             <label class="ropt sel" id="d-lbl-single"><input type="radio" name="d-mode" value="single" checked><div><div class="rl">Single cluster</div><div class="rs">Embedded Infinispan</div></div></label>
@@ -573,30 +573,35 @@ function setupFmt(id,obj,key){
 function wsl(id,ak,fmt){const e=document.getElementById(id),l=document.getElementById('lbl-'+id.slice(2));if(!e)return;e.addEventListener('input',()=>{A[ak]=+e.value;if(l)l.textContent=fmt?fmt(+e.value):e.value;upd();});}
 wsl('a-lpct','lpct',v=>v+'%');wsl('a-gpct','gpct',v=>v+'%');wsl('a-rpct','rpct',v=>v+'%');
 wsl('a-peak','peak',v=>v+'×');wsl('a-sess','sess',v=>v+'%');wsl('a-ttl','ttl',v=>v+'s');wsl('a-cpuhr','cpuHr',v=>v+'×');
-const _ap=document.getElementById('a-pods');if(_ap)_ap.addEventListener('input',e=>{A.pods=+e.target.value||1;upd();});
+const _ap=document.getElementById('a-pods');
+if(_ap){
+  _ap.type='text';_ap.inputMode='numeric';
+  _ap.addEventListener('focus',function(){this.value=String(A.pods||'');this.select();});
+  _ap.addEventListener('input',function(){A.pods=parseInt(this.value.replace(/\D/g,''),10)||1;upd();});
+  _ap.addEventListener('blur',function(){this.value=(A.pods||0).toLocaleString();});
+}
 ['mode','platform','ispn','pg','hash'].forEach(k=>{const e=document.getElementById('a-'+k);if(!e)return;e.addEventListener('change',e2=>{A[k]=e2.target.value;if(k==='mode'){A.ispn=e2.target.value==='multi'?'external':'embedded';document.getElementById('a-ispn').value=A.ispn;}upd();});});
 
 // ── Wire detailed inputs ──
-function dlnk(r,n,k){const R=document.getElementById(r),N=document.getElementById(n);if(!R||!N)return;R.addEventListener('input',()=>{N.value=R.value;D[k]=+R.value;upd();});N.addEventListener('input',()=>{R.value=N.value;D[k]=+N.value||0;upd();});}
+function dlnk(r,n,k){
+  const R=document.getElementById(r),N=document.getElementById(n);
+  if(!R||!N)return;
+  N.type='text';N.inputMode='numeric';N.autocomplete='off';
+  N.value=(D[k]||0).toLocaleString();
+  R.addEventListener('input',()=>{D[k]=+R.value;N.value=(+R.value).toLocaleString();upd();});
+  N.addEventListener('focus',function(){this.value=String(D[k]||'');this.select();});
+  N.addEventListener('input',function(){const v=parseInt(this.value.replace(/\D/g,''),10)||0;D[k]=v;R.value=v;upd();});
+  N.addEventListener('blur',function(){this.value=(D[k]||0).toLocaleString();});
+}
 // Small range inputs — raw numbers
 dlnk('d-logins-r','d-logins','logins');
 dlnk('d-grants-r','d-grants','grants');
 dlnk('d-refresh-r','d-refresh','refresh');
 dlnk('d-pods-r','d-pods','pods');
-// Large range inputs — formatted text display
-function fmtDlnk(rid,nid,key){
-  const R=document.getElementById(rid),N=document.getElementById(nid);
-  if(!R||!N)return;
-  N.type='text';N.inputMode='numeric';N.autocomplete='off';
-  N.value=(D[key]||0).toLocaleString();
-  R.addEventListener('input',()=>{D[key]=+R.value;N.value=R.value;upd();});
-  N.addEventListener('focus',function(){this.value=String(D[key]||'');this.select();});
-  N.addEventListener('input',function(){const v=parseInt(this.value.replace(/\D/g,''),10)||0;D[key]=v;R.value=v;upd();});
-  N.addEventListener('blur',function(){this.value=(D[key]||0).toLocaleString();});
-}
-fmtDlnk('d-users-r','d-users','users');
-fmtDlnk('d-clients-r','d-clients','clients');
-fmtDlnk('d-sessions-r','d-sessions','sessions');
+// All inputs now use unified dlnk (formatting built in)
+dlnk('d-users-r','d-users','users');
+dlnk('d-clients-r','d-clients','clients');
+dlnk('d-sessions-r','d-sessions','sessions');
 ['platform','ispn','pg','hash'].forEach(k=>{const e=document.getElementById('d-'+k);if(e)e.addEventListener('change',e2=>{D[k]=e2.target.value;upd();});});
 document.querySelectorAll('input[name=d-mode]').forEach(r=>r.addEventListener('change',e=>{
   D.mode=e.target.value;
@@ -1385,11 +1390,9 @@ function setMode(m){
     const w=getW();
     D.logins=Math.round(w.logins*10)/10;D.grants=Math.round(w.grants*10)/10;D.refresh=Math.round(w.refresh*10)/10;
     D.sessions=w.sessions;D.clients=w.clients;D.users=Q.users;D.pods=A.pods;D.mode=A.mode;D.platform=A.platform;D.ispn=A.ispn;
-    // Seed values: format large numbers, raw for small
-const _fmtIds=new Set(['d-sessions','d-clients','d-users']);
-[['d-logins',D.logins],['d-grants',D.grants],['d-refresh',D.refresh],
+    [['d-logins',D.logins],['d-grants',D.grants],['d-refresh',D.refresh],
  ['d-sessions',D.sessions],['d-clients',D.clients],['d-users',D.users],['d-pods',D.pods]
-].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=_fmtIds.has(id)?(v||0).toLocaleString():v;});
+].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=(+v||0).toLocaleString();});
     [['d-logins-r','logins'],['d-grants-r','grants'],['d-refresh-r','refresh'],['d-sessions-r','sessions'],['d-clients-r','clients'],['d-users-r','users'],['d-pods-r','pods']].forEach(([id,k])=>{const e=document.getElementById(id);if(e)e.value=D[k]||0;});
     document.getElementById('d-platform').value=D.platform;
     document.getElementById('d-ispn').value=D.ispn;
