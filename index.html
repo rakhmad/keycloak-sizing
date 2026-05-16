@@ -632,11 +632,13 @@ function toggleAsm(){
 }
 
 function ST(id){
+  const sy=window.scrollY; // save — page height collapses when panels hide, causing scroll-to-top
   document.querySelectorAll('.pf-v6-c-tabs__item').forEach(li=>{li.classList.remove('pf-m-current');li.querySelector('.pf-v6-c-tabs__link').setAttribute('aria-selected','false');});
   document.querySelectorAll('.pf-v6-c-tab-content').forEach(p=>{p.hidden=true;});
   document.getElementById('ti-'+id).classList.add('pf-m-current');
   document.getElementById('ti-'+id).querySelector('.pf-v6-c-tabs__link').setAttribute('aria-selected','true');
   document.getElementById('tp-'+id).hidden=false;
+  window.scrollTo({top:sy,behavior:'instant'}); // restore before browser paints
 }
 
 function cp(id,btn){
